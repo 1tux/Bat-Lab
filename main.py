@@ -49,7 +49,10 @@ def create_new_results_dir(nid, day, output_path="/data/results"):
     """
     dirs = ["-1 nid day"] + os.listdir(output_path)
     dirs_idx = list(map(lambda x: x.split(' ')[0], dirs))
-    new_dir_idx = max((map(int, dirs_idx))) + 1
+    try:
+    	new_dir_idx = max((map(int, dirs_idx))) + 1
+    except:
+    	new_dir_idx = 0
     new_dir_path = f"{output_path}/{new_dir_idx} - {nid} {day}"
     os.mkdir(new_dir_path)
     return new_dir_path

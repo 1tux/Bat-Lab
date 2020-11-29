@@ -55,7 +55,7 @@ def create_new_results_dir(nid, day, output_path="/data/results"):
     return new_dir_path
                     
 
-def store_results(results, output_path, nid, day):
+def store_results(results, output_path, nid, day, conf):
     """ `results` is a tuple returned by cell_analysis.  
         Stores the results in csvz in some output folder.  
         Returns the folder path of the results.  
@@ -63,9 +63,11 @@ def store_results(results, output_path, nid, day):
     logging.info("storing results...")
     df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, shuffles_df = results
     new_dir_path = create_new_results_dir(nid, day, output_path)
-    
-    df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
-    normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
+
+    if conf.get('STORE_DATAFRAME', 1):
+        df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
+    if conf.get('STORE_NORMALIZED_DATAFRAME', 1):
+        normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
     neuron.to_csv(f"{new_dir_path}/neuron.csv.zip")
 
     # pickle.dump(svm_model, open(f"{new_dir_path}/model.pkl", 'wb')) -> instead of pickling the model, we store only the coefficients.
@@ -74,9 +76,15 @@ def store_results(results, output_path, nid, day):
     df = pd.DataFrame.from_dict(d)
     df.to_csv(f"{new_dir_path}/model_coeffs.csv")
 
-    
     imp_table.to_csv(f"{new_dir_path}/imp_table.csv")
     agg_imp_table.to_csv(f"{new_dir_path}/agg_imp_table.csv")
+
+    shuffled_imp_table = pd.concat(list(list(zip(*shuffled_vals))[3]), ignore_index=True)
+    shuffled_agg_imp_table = pd.concat(list(list(zip(*shuffled_vals))[4]), ignore_index=True)
+
+    shuffled_imp_table.to_csv(f"{new_dir_path}/shuffled_imp_table.csv")
+    shuffled_agg_imp_table.to_csv(f"{new_dir_path}/shuffled_agg_imp_table.csv")
+
     copyfile(img_path, f"{new_dir_path}/plot.png")
     
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")
@@ -98,7 +106,7 @@ def main(args):
         neuron[neuron > 0] = 1 # make spikes a binary vector
     
     results = analysis_lib.cell_analysis(dataset, neuron, "Real Neuron", conf)
-    results_dir = store_results(results, output_path, nid, day)
+    results_dir = store_results(results, output_path, nid, day, conf)
     logging.info("Done!")
     if conf['POPUP_RESULTS']: os.startfile(os.getcwd() + "/" + results_dir)
     

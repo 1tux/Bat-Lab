@@ -22,3 +22,4 @@
 43. add TESTs with pytest.
 44. add git support for the project.
 45. add "batch" file that fetch and updates the project.
+46. add "get parsed neural data files" feature

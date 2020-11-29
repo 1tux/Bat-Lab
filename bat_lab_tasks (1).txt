@@ -1,0 +1,24 @@
+25. UPSAMPLING!
+26. document the bat lab project
+30. store the unscaled coefficients
+32. play with thresholds -> plot feature importances as function of the threshold (maybe high-frequency spikes have different meaning)
+33. to implement simulated neuron creation, and store as csv
+35. find a threshold (20% -> from all session, being with the recorded bat) removing a bat rather then removing the day
+36. fixing the aggretaed sparsity
+37. shuffles from other days instead of the same day
+
+
+28. add output directory as a parameter V
+29. save model's coefficients for the SVM (instead of saving the model) V
+27. add neuron_name to output directory V
+31. add with_pairs configuration V
+34. plots behavioral plots as dots not lines. V
+38. Pop up results directory at the end V
+
+39. stores the execution line
+40. stores the log (outputs)
+41. the plot should be named according the neuron_id and neuron_day.
+42. copy the plots to "plots directory".
+43. add TESTs with pytest.
+44. add git support for the project.
+45. add "batch" file that fetch and updates the project.

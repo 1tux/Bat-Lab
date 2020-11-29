@@ -1,0 +1,7 @@
+numpy
+matplotlib
+pandas
+seaborn
+wheel
+https://download.lfd.uci.edu/pythonlibs/z2tqcw5k/h5py-2.10.0-cp38-cp38-win_amd64.whl
+sklearn

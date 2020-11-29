@@ -1,0 +1,18 @@
+{
+    "GEN_DATA" : 0,
+    "REAL_BEHAVIORAL_DATA" : 1,
+    "CACHED_BEHAVIORAL_DATA" : 1,
+    "SHOW_PLOTS" : 0,
+    "PER_BAT_ANALYSIS" : 0,
+    "FE" : 1,
+    "WITH_PAIRS" : 1, 
+    "BINNING" : 0,
+    "NOISE_CANCELLATION" : 0,
+    "SQRT_WEIGHT" : 0,
+
+    "CV" : 2,
+    "N_SHUFFLES" : 5,
+    "FI_NUM" : 7,
+    "UPSAMPLING": 1,
+	"POPUP_RESULTS" : 1
+}

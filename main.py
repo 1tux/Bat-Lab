@@ -12,6 +12,10 @@ import argparse
 import pandas as pd
 import logging
 
+logger = logging.getLogger()
+fh = logging.FileHandler('log.log', mode='w')
+logger.addHandler(fh)
+
 def handle_args(args):
     """ Handles arguments with argparse.  
         Verifies that behavioral and neuronal data days are matching.
@@ -55,19 +59,20 @@ def create_new_results_dir(nid, day, output_path="/data/results"):
     return new_dir_path
                     
 
-def store_results(results, output_path, nid, day, conf):
+def store_results(results, output_path, nid, day, conf, args):
     """ `results` is a tuple returned by cell_analysis.  
         Stores the results in csvz in some output folder.  
         Returns the folder path of the results.  
     """
     logging.info("storing results...")
+    logging.shutdown()
     df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, shuffles_df = results
     new_dir_path = create_new_results_dir(nid, day, output_path)
 
-    if conf.get('STORE_DATAFRAME', 1):
-        df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
-    if conf.get('STORE_NORMALIZED_DATAFRAME', 1):
-        normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
+    #if conf.get('STORE_DATAFRAME', 1):
+    #    df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
+    #if conf.get('STORE_NORMALIZED_DATAFRAME', 1):
+    #    normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
     neuron.to_csv(f"{new_dir_path}/neuron.csv.zip")
 
     # pickle.dump(svm_model, open(f"{new_dir_path}/model.pkl", 'wb')) -> instead of pickling the model, we store only the coefficients.
@@ -85,9 +90,11 @@ def store_results(results, output_path, nid, day, conf):
     shuffled_imp_table.to_csv(f"{new_dir_path}/shuffled_imp_table.csv")
     shuffled_agg_imp_table.to_csv(f"{new_dir_path}/shuffled_agg_imp_table.csv")
 
-    copyfile(img_path, f"{new_dir_path}/plot.png")
+    copyfile(img_path, f"{new_dir_path}/plot {nid} {day}.png")
+    copyfile("log.log", f"{new_dir_path}/log.log")
     
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")
+    open(f"{new_dir_path}/execution_line.txt", "w").write(" ".join(args))
     return new_dir_path
 
 def main(args):
@@ -106,7 +113,7 @@ def main(args):
         neuron[neuron > 0] = 1 # make spikes a binary vector
     
     results = analysis_lib.cell_analysis(dataset, neuron, "Real Neuron", conf)
-    results_dir = store_results(results, output_path, nid, day, conf)
+    results_dir = store_results(results, output_path, nid, day, conf, args)
     logging.info("Done!")
     if conf['POPUP_RESULTS']: os.startfile(os.getcwd() + "/" + results_dir)
     

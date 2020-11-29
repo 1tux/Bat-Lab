@@ -58,6 +58,16 @@ def create_new_results_dir(nid, day, output_path="/data/results"):
     os.mkdir(new_dir_path)
     return new_dir_path
                     
+def store_img_plot(img_path, nid, day, new_dir_path):
+    copyfile(img_path, f"{new_dir_path}/plot {nid} {day}.png")
+    img_path_p = Path(img_path)
+    uid = -1 
+    while uid == -1 or new_img_path_p.exists():
+        uid += 1
+        new_img_path_p = img_path_p.parent / f"{nid} {day} {uid}.png"
+    img_path_p.rename(new_img_path_p)
+    print(img_path_p)
+    print(new_img_path_p)
 
 def store_results(results, output_path, nid, day, conf, args):
     """ `results` is a tuple returned by cell_analysis.  
@@ -69,10 +79,10 @@ def store_results(results, output_path, nid, day, conf, args):
     df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, shuffles_df = results
     new_dir_path = create_new_results_dir(nid, day, output_path)
 
-    #if conf.get('STORE_DATAFRAME', 1):
-    #    df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
-    #if conf.get('STORE_NORMALIZED_DATAFRAME', 1):
-    #    normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
+    if conf.get('STORE_DATAFRAME', 1):
+        df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
+    if conf.get('STORE_NORMALIZED_DATAFRAME', 1):
+        normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
     neuron.to_csv(f"{new_dir_path}/neuron.csv.zip")
 
     # pickle.dump(svm_model, open(f"{new_dir_path}/model.pkl", 'wb')) -> instead of pickling the model, we store only the coefficients.
@@ -90,7 +100,7 @@ def store_results(results, output_path, nid, day, conf, args):
     shuffled_imp_table.to_csv(f"{new_dir_path}/shuffled_imp_table.csv")
     shuffled_agg_imp_table.to_csv(f"{new_dir_path}/shuffled_agg_imp_table.csv")
 
-    copyfile(img_path, f"{new_dir_path}/plot {nid} {day}.png")
+    store_img_plot(img_path, nid, day, new_dir_path)
     copyfile("log.log", f"{new_dir_path}/log.log")
     
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")

@@ -221,17 +221,21 @@ def noise_cancellation(n):
     new_n = pd.Series(scipy.signal.medfilt(n, 3))
     return new_n
 
-def get_df_from_file_path(file_path, REAL_BEHAVIORAL_DATA, CACHED_BEHAVIORAL_DATA):
+def get_df_from_file_path(file_path, REAL_BEHAVIORAL_DATA, CACHED_BEHAVIORAL_DATA, net="NET1"):
     if REAL_BEHAVIORAL_DATA:
-        cache_file_path = file_path.replace("raw", "parsed").replace(".mat",".csv")
+        cache_file_path1 = file_path.replace("raw", "parsed").replace(".mat",".csv")
+        cache_file_path2 = file_path.replace("raw", "parsed2").replace(".mat",".csv")
+        cache_file_path = {"NET1" : cache_file_path1, "NET3" : cache_file_path2}[net]
         if CACHED_BEHAVIORAL_DATA and os.path.isfile(cache_file_path):
             print("loading cached file....")
             df = pd.read_csv(cache_file_path)
         else:
             print("parsing real data file")
             df, df2 = behavior_parse.parse_matlab_file(file_path)
-            print("storing to cache....")
-            df.to_csv(cache_file_path)
+            print("storing to cache...")
+            df.to_csv(cache_file_path1)
+            df2.to_csv(cache_file_path2)
+            df = df if cache_file_path == cache_file_path1 else df2
     else:
         df = dataset.load_dataset()
     

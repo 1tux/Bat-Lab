@@ -329,7 +329,7 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     
     WEIGHT = dict(zip([0,1], len(neuron) / (2 * np.bincount(neuron) ** 0.5)))
     
-    df = df.dropna() 
+    df = df.dropna()
     normalized_df = SVM_utils.manual_normalization(df)
     normalized_df.reset_index(drop=True, inplace=True)
     df_ = df.reset_index(drop=True)
@@ -381,9 +381,9 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     img_path, t_shuffles_df = plot_result_per_model(axes, fig, design_shape, df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals)
     return df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, t_shuffles_df
 
-def behavioral_data_to_dataframe(behavioral_data_path, conf={}):
+def behavioral_data_to_dataframe(behavioral_data_path, net="NET1", conf={}):
     CONF.update(conf)
-    df = SVM_utils.get_df_from_file_path(behavioral_data_path, CONF["REAL_BEHAVIORAL_DATA"], CONF["CACHED_BEHAVIORAL_DATA"])
+    df = SVM_utils.get_df_from_file_path(behavioral_data_path, CONF["REAL_BEHAVIORAL_DATA"], CONF["CACHED_BEHAVIORAL_DATA"], net)
     if CONF["FE"]: df = feature_engineering.engineer(df, CONF)
     return df
 

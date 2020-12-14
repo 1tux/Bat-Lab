@@ -49,6 +49,8 @@ CONF = {
     "N_SHUFFLES" : 50,
     "FI_NUM" : 5,
     "POPUP_RESULTS" : True,
+    "MIN_SPIKES" : 500,
+    "MIN_DATAPOINTS" : 500000
 }
 
 VERBOSE = log.INFO #log.INFO
@@ -329,6 +331,7 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     
     WEIGHT = dict(zip([0,1], len(neuron) / (2 * np.bincount(neuron) ** 0.5)))
     
+    orig_df_nans = df.isna().mean()
     df = df.dropna()
     normalized_df = SVM_utils.manual_normalization(df)
     normalized_df.reset_index(drop=True, inplace=True)
@@ -338,11 +341,13 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     threads = []
     
     neuron_dropped = neuron[df.index].reset_index(drop=True)
-    if neuron_dropped.sum() < 500:
-        print("Too few spikes (< 500)")
+    if neuron_dropped.sum() < CONF['MIN_SPIKES']:
+        print(f"Too few spikes (< conf:{CONF['MIN_SPIKES']})")
         return True
-    if len(df_) < 50000: # ~ 33 minutes
-        print("Too few data points ( < 50000)")
+
+    if len(df_) < CONF['MIN_DATAPOINTS']: # ~ 33 minutes
+        print(f"Too few data points ( < conf:{CONF['MIN_DATAPOINTS']})")
+        print(orig_df_nans.head(20))
         return True
     
     for xid, shuffled_neuron in enumerate(shuffling.shuffling(neuron_dropped, CONF["N_SHUFFLES"])):
@@ -389,7 +394,7 @@ def exclude_bats(dataset, exclude=[]):
     dataset = dataset.drop(columns=remove_features)
     return dataset
 
-def behavioral_data_to_dataframe(behavioral_data_path, net="NET1", conf={}):
+def behavioral_data_to_dataframe(behavioral_data_path, net="NET1", exclude=[], conf={}):
     CONF.update(conf)
     df = SVM_utils.get_df_from_file_path(behavioral_data_path, CONF["REAL_BEHAVIORAL_DATA"], CONF["CACHED_BEHAVIORAL_DATA"], net)
     df = exclude_bats(df, exclude)

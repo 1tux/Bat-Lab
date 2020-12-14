@@ -35,14 +35,15 @@ def load_bats_data():
     return bats
 
 def get_bats_names(include_nearest=False):
+    assert 1 == 0, "Don't use me anymore!!"
     res = list(map(str, range(N_BATS)))
     if include_nearest:
         res += ["n"]
     
-    # res += ["E12", "E13", "E14", "E23", "E24", "E34"]
     return res
 
 def get_other_bats_names():
+    assert 1 == 0, "Don't use me anymore!!"
     return get_bats_names()[1:] # no Bat0
 
 def get_feature_names():
@@ -99,33 +100,6 @@ def build_dataset_inline(bats):
                                 "Y" : get_col_name(0, "Y"),\
                                 "HD" : get_col_name(0, "HD")\
                                })
-    
-    # remove NAN values
-    #print("BEFORE AND AFTER REMOVING NANS")
-    #print(bat0.shape)
-    #bat0.dropna(inplace=True)
-    #print(bat0.shape)
-    
-    # removing nearest bat
-    """
-    distance_columns = [get_col_name(i, "D") for i in range(1, N_BATS)]
-    bat0[get_col_name("n", "D")] = bat0[distance_columns].min(axis=1)
-    bat0[get_col_name("n", "ID")] = bat0[distance_columns].idxmin(axis=1).str.extract(r'BAT_(.)_F_D').astype('float')
-
-    nearest_xs = []
-    nearest_ys = []
-    nearest_as = []
-    for i in range(1, N_BATS):
-        nb = bat0[bat0[get_col_name("n", "ID")] == i]
-        nearest_xs.append( nb[get_col_name(i, "X")] )
-        nearest_ys.append( nb[get_col_name(i, "Y")] )
-        nearest_as.append( nb[get_col_name(i, "A")] )
-    
-
-    bat0[get_col_name("n", "X")] = pd.concat(nearest_xs).sort_index()
-    bat0[get_col_name("n", "Y")] = pd.concat(nearest_ys).sort_index()
-    bat0[get_col_name("n", "A")] = pd.concat(nearest_as).sort_index()
-    """
     return bat0
 
 def add_pairs_bats(bats):

@@ -381,9 +381,18 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     img_path, t_shuffles_df = plot_result_per_model(axes, fig, design_shape, df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals)
     return df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, t_shuffles_df
 
+def exclude_bats(dataset, exclude=[]):
+    remove_features = []
+    for b in exclude:
+        remove_features += SVM_utils.get_bat_features(dataset, b).to_list()
+
+    dataset = dataset.drop(columns=remove_features)
+    return dataset
+
 def behavioral_data_to_dataframe(behavioral_data_path, net="NET1", conf={}):
     CONF.update(conf)
     df = SVM_utils.get_df_from_file_path(behavioral_data_path, CONF["REAL_BEHAVIORAL_DATA"], CONF["CACHED_BEHAVIORAL_DATA"], net)
+    df = exclude_bats(df, exclude)
     if CONF["FE"]: df = feature_engineering.engineer(df, CONF)
     return df
 

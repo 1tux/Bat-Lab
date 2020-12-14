@@ -24,7 +24,6 @@ def angle_avg(angles):
 def id_avg(ids):
     # most frequent
     return ids.mode().sample(1).iloc[0]
-    pass
 
 def bin_func(grouped_df):
     mean_cols = []

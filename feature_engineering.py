@@ -2,12 +2,12 @@ import dataset
 import numpy as np
 import re
 
-def add_squared_features(df, pair_bats_names = []):
+def add_squared_features(df, other_bats, pair_bats_names = []):
     for f in ["X", "Y", "HD"]:
         df[dataset.get_col_name(0, f"{f}^2")] = df[dataset.get_col_name(0, f)] ** 2
         # df[dataset.get_col_name(0, f"{f}^0.5")] = df[dataset.get_col_name(0, f)] ** 0.5
 
-    for bat_name in dataset.get_other_bats_names():
+    for bat_name in other_bats:
         for f_name in ["X", "Y", "A", "D"]:
             df[dataset.get_col_name(bat_name, f_name + "^2")] = df[dataset.get_col_name(bat_name, f_name)] ** 2
             # df[dataset.get_col_name(bat_name, f_name + "^0.5")] = df[dataset.get_col_name(bat_name, f_name)] ** 0.5
@@ -19,21 +19,21 @@ def add_squared_features(df, pair_bats_names = []):
 
     return df
 
-def add_squared_features(df):
+def add_squared_features(df, other_bats):
     for f in ["X", "Y", "HD"]:
         df[dataset.get_col_name(0, f"{f}^2")] = df[dataset.get_col_name(0, f)] ** 2
         # df[dataset.get_col_name(0, f"{f}^0.5")] = df[dataset.get_col_name(0, f)] ** 0.5
 
-    for bat_name in dataset.get_other_bats_names():
+    for bat_name in other_bats:
         for f_name in ["X", "Y", "A", "D"]:
             df[dataset.get_col_name(bat_name, f_name + "^2")] = df[dataset.get_col_name(bat_name, f_name)] ** 2
             # df[dataset.get_col_name(bat_name, f_name + "^0.5")] = df[dataset.get_col_name(bat_name, f_name)] ** 0.5
 
     return df
 
-def add_pairwise_distance(df):
-    for bat_name1 in dataset.get_other_bats_names():
-        for bat_name2 in dataset.get_other_bats_names():
+def add_pairwise_distance(df, other_bats):
+    for bat_name1 in other_bats:
+        for bat_name2 in other_bats:
             if bat_name1 <= bat_name2 or bat_name1 == "0" or bat_name2 == "0": continue
             pair_name = bat_name1 + bat_name2
             x1 = df[dataset.get_col_name(bat_name1, "X")]
@@ -46,7 +46,7 @@ def add_pairwise_distance(df):
 
     return df
 
-def add_pairwise_features(df):
+def add_pairwise_features(df, other_bats):
     """ takes BAT_1 features name.
     # to support OR/AND neurons:
         # (x_1)^2 * (x_2^2)
@@ -56,11 +56,11 @@ def add_pairwise_features(df):
     # to support AND neurons:
         # (x_1-x_2)^2 + (y_2-y_1)^2
     """
-    f_names = map(lambda x: re.findall("BAT_1_F_(.*?)$", x), df.columns)
-    f_names_flat = [item for sublist in f_names for item in sublist]
+    f_names = map(lambda x: re.findall("BAT_[1-9]_F_(.*?)$", x), df.columns)
+    f_names_flat = list(set([item for sublist in f_names for item in sublist]))
     pair_bats_names = []
-    for bat_name1 in dataset.get_other_bats_names():
-        for bat_name2 in dataset.get_other_bats_names():
+    for bat_name1 in other_bats:
+        for bat_name2 in other_bats:
             if bat_name1 <= bat_name2: continue # or bat_name1 == "0" or bat_name2 == "0": continue
 
             pair_name = bat_name1 + bat_name2
@@ -74,9 +74,9 @@ def add_pairwise_features(df):
 
     return df, pair_bats_names
 
-def add_pairwise_rotational_features(df):
-    for bat_name1 in dataset.get_other_bats_names():
-        for bat_name2 in dataset.get_other_bats_names():
+def add_pairwise_rotational_features(df, other_bats):
+    for bat_name1 in other_bats:
+        for bat_name2 in other_bats:
             if bat_name1 <= bat_name2: continue
             pair_name = bat_name1 + bat_name2
             pair_bats_name.append(pair_name)
@@ -98,13 +98,19 @@ def add_nearest_distance(df):
     return df
 
 
+def get_bets_in_df(df):
+    return list(set(df.columns.str.extract('BAT_(\d)')[0].to_list()))
+
 def engineer(df, config):
+
+    bats = get_bets_in_df(df)
+    other_bats = [x for x in bats if x != '0']
 
     # pairwise_distance
     df = add_nearest_distance(df)
-    df = add_squared_features(df)
+    df = add_squared_features(df, other_bats)
     if config["WITH_PAIRS"]:
-        df = add_pairwise_distance(df)
-        df, pair_bats_names = add_pairwise_features(df)
+        df = add_pairwise_distance(df, other_bats)
+        df, pair_bats_names = add_pairwise_features(df, other_bats)
     #df = add_squared_features(df, pair_bats_names)
     return df

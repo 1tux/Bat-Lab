@@ -26,6 +26,8 @@ def handle_args(args):
     parser.add_argument('cpath', metavar='config_path', type=str, nargs='?', help='Path for configuration file (json)', default='config.json')
     parser.add_argument('opath', metavar='output_dir', type=str, nargs='?', help='Output directory', default='data/results')
     parser.add_argument('-n', metavar='net', type=int, help='which net, could be 1 or 3', default=1)
+    parser.add_argument('--exclude', type=str, nargs='*', default=[])
+
     args = parser.parse_args()
     
     behavioral_data_path = args.bpath[0]
@@ -34,6 +36,9 @@ def handle_args(args):
     output_path = args.opath
     try: net = {1 : "NET1", 3 : "NET3"}[args.n]
     except: raise Exception("Wrong Net! should have been either 1 or 3 %s" % str(args.n))
+
+    exclude = args.exclude
+    assert len(exclude) < 5, Exception("You can exculde up to 4 bats")
 
     bat_name, day, _, _ = Path(behavioral_data_path).stem.split('_')
     nid, bat_name2, day2 = Path(neural_data_path).stem.split('_')
@@ -47,7 +52,7 @@ def handle_args(args):
     if day != day2:
         logging.warning(days_err_msg)
 
-    return behavioral_data_path, neural_data_path, conf, output_path, nid, day2, net
+    return behavioral_data_path, neural_data_path, conf, output_path, nid, day2, net, exclude
 
 def create_new_results_dir(nid, day, output_path="/data/results"):
     """ Scans the results path, assume all results dirs starts with an index.  
@@ -114,9 +119,9 @@ def main(args):
     Checks and converts the neural data to binary.  
     Stores results and pop-up the results directory.  
     """
-    behavioral_data_path, neural_data_path, conf, output_path, nid, day, net = handle_args(args)
+    behavioral_data_path, neural_data_path, conf, output_path, nid, day, net, exclude = handle_args(args)
     
-    dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, conf)
+    dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude, conf)
     neuron = parse_real_neural_data.parse_neural_data_from_path(neural_data_path, behavioral_data_path)
     
     # TODO: remove

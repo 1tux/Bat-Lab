@@ -222,8 +222,8 @@ def noise_cancellation(n):
 
 def get_df_from_file_path(file_path, REAL_BEHAVIORAL_DATA, CACHED_BEHAVIORAL_DATA, net="NET1"):
     if REAL_BEHAVIORAL_DATA:
-        cache_file_path1 = file_path.replace("raw", "parsed").replace(".mat",".csv")
-        cache_file_path2 = file_path.replace("raw", "parsed2").replace(".mat",".csv")
+        cache_file_path1 = file_path.replace(".mat","net1.csv")
+        cache_file_path2 = file_path.replace(".mat","net3.csv")
         cache_file_path = {"NET1" : cache_file_path1, "NET3" : cache_file_path2}[net]
         if CACHED_BEHAVIORAL_DATA and os.path.isfile(cache_file_path):
             print("loading cached file....")

@@ -25,7 +25,8 @@ NET3_MAX_Y = 220
 def points_to_hd(x1, y1, x2, y2):
     dx = (x2 - x1)
     dy = (y2 - y1)
-    hd = np.round((np.arctan2(dy, dx) % (2*np.pi)) * 180 / np.pi)
+    with np.errstate(invalid='ignore'):
+        hd = np.round((np.arctan2(dy, dx) % (2*np.pi)) * 180 / np.pi)
     return hd
 
 

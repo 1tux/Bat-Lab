@@ -329,6 +329,10 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
         return True
     if CONF["BINNING"]: df, neuron = SVM_utils.bin_df_and_neuron(df, neuron, bin_size=5)
     
+    # remove behavioral data where neural data is nan
+    df = df[~neuron.isna()]
+    neuron = neuron.dropna()
+
     WEIGHT = dict(zip([0,1], len(neuron) / (2 * np.bincount(neuron) ** 0.5)))
     
     orig_df_nans = df.isna().mean()

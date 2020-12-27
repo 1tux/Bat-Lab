@@ -11,6 +11,8 @@ import json
 import argparse
 import pandas as pd
 import logging
+import shutil
+import os.path
 
 logger = logging.getLogger()
 fh = logging.FileHandler('log.log', mode='w')
@@ -62,8 +64,9 @@ def create_new_results_dir(nid, day, output_path="/data/results"):
     dirs_idx = list(map(lambda x: x.split(' ')[0], dirs))
     new_dir_idx = max(map(lambda x: int(x) if x.isnumeric() else 0, dirs_idx)) + 1
     new_dir_path = f"{output_path}/{new_dir_idx} - {nid} {day}"
+    new_dir_path_override = f"{output_path}/LAST - {nid} {day}"
     os.mkdir(new_dir_path)
-    return new_dir_path
+    return new_dir_path, new_dir_path_override
                     
 def store_img_plot(img_path, nid, day, new_dir_path):
     copyfile(img_path, f"{new_dir_path}/plot {nid} {day}.png")
@@ -73,8 +76,8 @@ def store_img_plot(img_path, nid, day, new_dir_path):
         uid += 1
         new_img_path_p = img_path_p.parent / f"{nid} {day} {uid}.png"
     img_path_p.rename(new_img_path_p)
-    print(img_path_p)
-    print(new_img_path_p)
+    # print(img_path_p)
+    # print(new_img_path_p)
 
 def store_results(results, output_path, nid, day, conf, args):
     """ `results` is a tuple returned by cell_analysis.  
@@ -84,7 +87,7 @@ def store_results(results, output_path, nid, day, conf, args):
     logging.info("storing results...")
     logging.shutdown()
     df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, shuffles_df = results
-    new_dir_path = create_new_results_dir(nid, day, output_path)
+    new_dir_path, new_dir_path_override = create_new_results_dir(nid, day, output_path)
 
     if conf.get('STORE_DATAFRAME', 1):
         df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
@@ -112,6 +115,13 @@ def store_results(results, output_path, nid, day, conf, args):
     
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")
     open(f"{new_dir_path}/execution_line.txt", "w").write(" ".join(args))
+
+    if conf.get('OVERWRITE', 1):
+        # overwrite last neuron directory
+        if os.path.exists(new_dir_path_override):
+            shutil.rmtree(new_dir_path_override)
+        shutil.copytree(new_dir_path, new_dir_path_override) 
+        
     return new_dir_path
 
 def main(args):

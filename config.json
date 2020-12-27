@@ -9,7 +9,8 @@
     "BINNING" : 0,
     "NOISE_CANCELLATION" : 0,
     "SQRT_WEIGHT" : 0,
-
+    "OVERWRITE" : 0,
+    
     "CV" : 2,
     "N_SHUFFLES" : 5,
     "FI_NUM" : 7,

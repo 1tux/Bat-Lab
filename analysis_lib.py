@@ -324,7 +324,7 @@ def plot_result_per_model(axes, fig, design_shape,\
 def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     CONF.update(new_confs)
     
-    if neuron.sum() < 500:
+    if neuron.sum() < CONF.get('MIN_SPIKES', 500):
         print("Too few spikes (< 500)")
         return True
     if CONF["BINNING"]: df, neuron = SVM_utils.bin_df_and_neuron(df, neuron, bin_size=5)
@@ -345,12 +345,12 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     threads = []
     
     neuron_dropped = neuron[df.index].reset_index(drop=True)
-    if neuron_dropped.sum() < CONF['MIN_SPIKES']:
-        print(f"Too few spikes (< conf:{CONF['MIN_SPIKES']})")
+    if neuron_dropped.sum() < CONF.get('MIN_SPIKES', 500):
+        print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
         return True
 
-    if len(df_) < CONF['MIN_DATAPOINTS']: # ~ 33 minutes
-        print(f"Too few data points ( < conf:{CONF['MIN_DATAPOINTS']})")
+    if len(df_) < CONF.get('MIN_DATAPOINTS', 5000): # ~ 33 minutes
+        print(f"Too few data points ( < conf:{CONF.get('MIN_DATAPOINTS', 5000)})")
         print(orig_df_nans.head(20))
         return True
     
@@ -375,8 +375,8 @@ def cell_analysis(df, neuron, neuron_description="", new_confs={}):
     neuron = neuron[df.index].reset_index(drop=True)
     df = df.reset_index(drop=True)
             
-    if neuron.sum() < 500:
-        print("Too few spikes (< 500)")
+    if neuron.sum() < CONF.get('MIN_SPIKES', 500):
+        print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
         return True
     
     #model = SVM_model(cv=CV)

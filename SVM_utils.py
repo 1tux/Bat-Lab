@@ -8,6 +8,35 @@ import os.path
 import matplotlib.pyplot as plt
 from sklearn.metrics import balanced_accuracy_score
 import behavior_parse
+from sklearn.utils import resample
+
+
+def upsample(df, neuron):
+    # print("upsampling...")
+
+    # we need this to avoid annoying warning regarding 'SettingWithCopyWarning'
+    df_copy = df.copy()
+
+    if "neuron" in df_copy.columns.to_list():
+        df_copy.drop(columns=['neuron'], inplace=True)
+
+    df_copy['neuron'] = pd.Series(neuron)#.copy()
+
+    df_majority = df_copy[df_copy.neuron == 0]
+    df_minority = df_copy[df_copy.neuron == 1]
+
+    df_minority_upsampled = resample(df_minority, 
+                                 replace=True,     # sample with replacement
+                                 n_samples=len(df_majority),    # to match majority class
+                                 random_state=1337) # reproducible results
+
+    df_upsampled = pd.concat([df_majority, df_minority_upsampled])
+    df_upsampled = df_upsampled.reset_index(drop=True)
+    neuron_upsampled = df_upsampled['neuron']
+    df_upsampled.drop(columns=['neuron'], inplace=True)
+    df_copy.drop(columns=['neuron'], inplace=True)
+    # print("upsampled!")
+    return df_upsampled, neuron_upsampled
 
 def get_bat_features(df, bat_name):
     return df.columns[df.columns.str.match(f'BAT_{bat_name}')]

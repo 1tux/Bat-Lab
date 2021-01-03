@@ -7,6 +7,7 @@ from sklearn.metrics import confusion_matrix
 import logging as log
 import numpy as np
 from constants import *
+import SVM_utils
 #from xgboost import XGBClassifier
 
 class Model():
@@ -26,6 +27,7 @@ class Model():
     
     def single_run(self, X, y, test_size = 0.2):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
+        X_train, y_train = SVM_utils.upsample(X_train, y_train)
         self.train(X_train, y_train)
     
         self.imp_table = importance.get_feature_importances(self, X, agg=False, max_=0)
@@ -41,6 +43,7 @@ class Model():
         return self.model, [self.train_cm], [self.test_cm], self.imp_table, self.agg_imp_table, self.std_train_cm, self.std_test_cm
 
     def per_cross_validation(self, model, X_train, X_test, y_train, y_test):
+        X_train, y_train = SVM_utils.upsample(X_train, y_train)
         model.train(X_train, y_train)
         
         model.train_cm = confusion_matrix(y_train, model.predict(X_train))
@@ -55,7 +58,7 @@ class Model():
 
         #interleaved_indices(df, cv): #KFold(n_splits=cv).split(X):  ## StratifiedKFold
         threads = []
-        for train_index, test_index in StratifiedKFold(n_splits=self.cv).split(X, y):
+        for train_index, test_index in KFold(n_splits=self.cv, shuffle=True, random_state=1337).split(X, y): # StratifiedKFold
             import copy
             model = copy.deepcopy(self)
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]

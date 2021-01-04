@@ -1,10 +1,7 @@
 *.csv
 **/__pycache__
 *.log
-<<<<<<< HEAD
 test.bat
 venv/*
 .idea
-=======
 test.bat
->>>>>>> 79b8c63fca6ca1c1b1ede3bc0b96f6e52b99a9b9

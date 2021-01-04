@@ -21,7 +21,7 @@ import feature_engineering
 import parse_real_neural_data
 import uuid
 
-from models import SVM_model
+from models import SVMModel
 from constants import *
 
 pd.set_option('display.max_columns', None)
@@ -394,7 +394,7 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
 
     for xid, shuffled_neuron in enumerate(shuffling.shuffling(neuron_dropped, CONF["N_SHUFFLES"])):
         shuffled_neuron = shuffled_neuron.astype('int')
-        model = SVM_model(multi_threaded=True)
+        model = SVMModel(multi_threaded=True)
         thread = ThreadWithReturnValue(target=model.single_run,
                                        args=(normalized_df, shuffled_neuron, 0))  # no test on purpose!
         threads.append(thread)
@@ -414,7 +414,7 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
         return True
 
     # model = SVM_model(cv=CV)
-    model = SVM_model(cv=CONF["CV"], multi_threaded=True)
+    model = SVMModel(cv=CONF["CV"], multi_threaded=True)
 
     design_shape, axes, fig = SVM_utils.design_axes("")  # neuron description
     svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm = model(normalized_df, neuron)

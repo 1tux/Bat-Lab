@@ -1,27 +1,28 @@
 import pandas as pd
 import h5py
-import functools
 import os.path
-from pathlib import Path
+
 
 def parse_behavioral_time_table_from_path(path):
     behavioral_file = h5py.File(path, "r")
     time_table = behavioral_file[behavioral_file["simplified_behaviour"]["time"][0][0]]
     time_table_length = time_table.shape[0]
-    POWER_OF_TWO = [2**i for i in range(30)]
-    l = []
+    # POWER_OF_TWO = [2 ** i for i in range(30)]
+    intervals = []
 
-    for i in range(time_table_length-1):
+    for i in range(time_table_length - 1):
         tf = time_table[i][0]
-        next_tf = time_table[i+1][0]
+        next_tf = time_table[i + 1][0]
 
-        l.append(pd.Interval(tf, next_tf))
+        intervals.append(pd.Interval(tf, next_tf))
 
-    return l
+    return intervals
+
 
 def parse_behavioral_time_table(day, recorded_bat):
     behavioral_path = f"data/behavioural_data/raw/{recorded_bat}_{day}_simplified_behaviour.mat"
-    return parse_behavioral_time_table_from_path(behavioral_data_path)
+    return parse_behavioral_time_table_from_path(behavioral_path)
+
 
 def parse_neural_data_internal_from_path(path, intervals):
     f = h5py.File(path, "r")
@@ -29,14 +30,16 @@ def parse_neural_data_internal_from_path(path, intervals):
     neural_table = f["cell_struct"]["spikes_ts_msec"]
     neural_table_length = neural_table.shape[0]
     inter_idx = 0
-    POWER_OF_TWO = [2**i for i in range(30)]
-    d = {0 : 0}
+    # POWER_OF_TWO = [2 ** i for i in range(30)]
+    d = {0: 0}
 
     for i in range(neural_table_length):
 
         current_time = neural_table[i][0]
-        if current_time < intervals[0].left: continue
-        if current_time > intervals[-1].right: break
+        if current_time < intervals[0].left:
+            continue
+        if current_time > intervals[-1].right:
+            break
 
         while inter_idx < len(intervals):
             if current_time not in intervals[inter_idx]:
@@ -55,6 +58,7 @@ def parse_neural_data_internal_from_path(path, intervals):
     result = pd.Series(d.values(), d.keys())
     return result
 
+
 def parse_neural_data_internal(neuron_id, day, recorded_bat, intervals):
     path = f"data/neural_data/raw/{neuron_id}_{recorded_bat}_{day}.mat"
     return parse_neural_data_internal_from_path(path, intervals)
@@ -62,7 +66,8 @@ def parse_neural_data_internal(neuron_id, day, recorded_bat, intervals):
 
 def parse_neural_data_from_path(path, behavioral_data_path=""):
     if os.path.exists(path):
-        if path.endswith("csv"): return pd.read_csv(path)['0']
+        if path.endswith("csv"):
+            return pd.read_csv(path)['0']
         if path.endswith("mat"):
             output_path = path.replace(".mat", ".csv")
             # split into neuron id, day, recoreded bat
@@ -85,7 +90,7 @@ def parse_neural_data_from_path(path, behavioral_data_path=""):
             print("Parsing neural data.....")
             result = parse_neural_data_internal_from_path(path, intervals)
             print("storing neural data")
-            new_path = path.replace(".mat", ".csv")
+            # new_path = path.replace(".mat", ".csv")
             result.to_csv(output_path)
             return result
     else:
@@ -94,9 +99,11 @@ def parse_neural_data_from_path(path, behavioral_data_path=""):
         print("trying changing path / using a script to convert matlab neural data to csv")
         return -1
 
-def parse_neural_data(neuron_id='55', day='d191220', recorded_bat = 'b2305', data_dir="data/neural_data"):
+
+def parse_neural_data(neuron_id='55', day='d191220', recorded_bat='b2305', data_dir="data/neural_data"):
     path = f"/parsed/{data_dir}/{neuron_id}_{recorded_bat}_{day}.csv"
-    if os.path.exists(path): return pd.read_csv(path)['0']
+    if os.path.exists(path):
+        return pd.read_csv(path)['0']
 
     intervals = parse_behavioral_time_table(day, recorded_bat)
     result = parse_neural_data_internal(neuron_id, day, recorded_bat, intervals)

@@ -3,9 +3,6 @@ from math import pi, atan, atan2
 from constants import *
 import numpy as np
 
-def del_me():
-    print("CAT")
-
 class Bat:
 
     def __init__(self):

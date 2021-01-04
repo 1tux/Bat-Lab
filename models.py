@@ -9,6 +9,7 @@ import numpy as np
 from constants import *
 import SVM_utils
 #from xgboost import XGBClassifier
+import copy
 
 class Model():
     
@@ -40,7 +41,7 @@ class Model():
         self.std_train_cm = self.train_cm * np.nan
         self.std_test_cm = self.test_cm * np.nan
     
-        return self.model, [self.train_cm], [self.test_cm], self.imp_table, self.agg_imp_table, self.std_train_cm, self.std_test_cm
+        return self, [self.train_cm], [self.test_cm], self.imp_table, self.agg_imp_table, self.std_train_cm, self.std_test_cm
 
     def per_cross_validation(self, model, X_train, X_test, y_train, y_test):
         X_train, y_train = SVM_utils.upsample(X_train, y_train)
@@ -59,7 +60,6 @@ class Model():
         #interleaved_indices(df, cv): #KFold(n_splits=cv).split(X):  ## StratifiedKFold
         threads = []
         for train_index, test_index in KFold(n_splits=self.cv, shuffle=True, random_state=1337).split(X, y): # StratifiedKFold
-            import copy
             model = copy.deepcopy(self)
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -104,7 +104,7 @@ class SVM_model(Model):
         self.model = model
         self.cv = (cv > 1) * cv
         self.multi_threaded = multi_threaded
-        if model is None: self.model = SGDClassifier(power_t = 0.4, n_jobs=1, max_iter=10**5,  learning_rate="invscaling", eta0=1, penalty = 'L1', n_iter_no_change=10)
+        if model is None: self.model = SGDClassifier(power_t = 0.4, n_jobs=1, max_iter=10**5,  learning_rate="invscaling", eta0=1, penalty = 'L1', n_iter_no_change=10, random_state=1337)
         
             
     def train(self, X, y):

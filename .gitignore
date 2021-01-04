@@ -5,3 +5,4 @@ test.bat
 venv/*
 .idea
 test.bat
+.ipynb_checkpoints

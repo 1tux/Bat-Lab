@@ -25,10 +25,6 @@ class Bat:
         self.goal_speed_X = random.uniform(MIN_FV, MAX_FV)
         self.goal_speed_Y = random.uniform(MIN_FV, MAX_FV)
 
-        # TODO: head direction might change too sharply!
-        #  set the new goal to be in a reasonable degree to the
-        #  head's direction
-
         dx = self.goal_X - self.X
         dy = self.goal_Y - self.Y
         self.hd = round((atan2(dy, dx) % (2*pi)) * 180 / pi)

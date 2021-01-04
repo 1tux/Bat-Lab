@@ -26,7 +26,7 @@ class Model():
 
     
     def single_run(self, X, y, test_size = 0.2):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=1337)
         X_train, y_train = SVM_utils.upsample(X_train, y_train)
         self.train(X_train, y_train)
     

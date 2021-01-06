@@ -11,7 +11,8 @@ import copy
 
 
 def per_cross_validation(model, X_train, X_test, y_train, y_test):
-    X_train, y_train = SVM_utils.upsample(X_train, y_train)
+    if model.upsample:
+        X_train, y_train = SVM_utils.upsample(X_train, y_train)
     model.train(X_train, y_train)
 
     model.train_cm = confusion_matrix(y_train, model.predict(X_train))
@@ -21,10 +22,11 @@ def per_cross_validation(model, X_train, X_test, y_train, y_test):
 
 
 class Model:
-    def __init__(self, model=None, cv=False, multi_threaded=True):
+    def __init__(self, model=None, cv=False, multi_threaded=True, upsample=True):
         self.model = model
         self.cv = (cv > 1) * cv
         self.multi_threaded = multi_threaded
+        self.upsample = upsample
 
         self.imp_table = None
         self.agg_imp_table = None
@@ -45,7 +47,9 @@ class Model:
 
     def single_run(self, X, y, test_size=0.2):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1337)
-        X_train, y_train = SVM_utils.upsample(X_train, y_train)
+        if self.upsample:
+            X_train, y_train = SVM_utils.upsample(X_train, y_train)
+
         self.train(X_train, y_train)
 
         self.imp_table = importance.get_feature_importances(self, X, agg=False, max_=0)
@@ -70,7 +74,12 @@ class Model:
 
         # interleaved_indices(df, cv): #KFold(n_splits=cv).split(X):  ## StratifiedKFold
         threads = []
-        for train_index, test_index in KFold(n_splits=self.cv, shuffle=True, random_state=1337).split(X, y):
+        if not self.upsample:
+            f = lambda: StratifiedKFold(n_splits=self.cv).split(X, y)
+        else:
+            f = lambda: KFold(n_splits=self.cv, shuffle=bool(self.upsample), random_state=1337).split(X, y)
+
+        for train_index, test_index in f():
             model = copy.deepcopy(self)
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train, y_test = y[train_index], y[test_index]
@@ -113,12 +122,13 @@ class Model:
 
 class SVMModel(Model):
 
-    def __init__(self, model=None, cv=False, multi_threaded=True):
+    def __init__(self, model=None, cv=False, multi_threaded=True, upsample=True):
         self.X_train = None
         self.y_train = None
         self.X_test = None
         self.X_preds = None
 
+        self.upsample = upsample
         self.model = model
         self.cv = (cv > 1) * cv
         self.multi_threaded = multi_threaded

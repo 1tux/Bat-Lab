@@ -361,7 +361,7 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
     if neuron.sum() < CONF.get('MIN_SPIKES', 500):
         print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
         return True
-        
+
     if CONF["BINNING"]:
         df, neuron = SVM_utils.bin_df_and_neuron(df, neuron, bin_size=5)
 
@@ -395,7 +395,14 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
 
     for xid, shuffled_neuron in enumerate(shuffling.shuffling(neuron_dropped, CONF["N_SHUFFLES"])):
         shuffled_neuron = shuffled_neuron.astype('int')
-        model = SVMModel(multi_threaded=True)
+        model = SVMModel(multi_threaded=True, upsample=CONF.get('UPSAMPLING', True))
+
+        if not CONF.get('UPSAMPLING', True):
+            WEIGHT = dict(zip([0,1], len(shuffled_neuron) / (2*np.bincount(shuffled_neuron))))
+            if CONF["SQRT_WEIGHT"]:
+                if CONF["SQRT_WEIGHT"]: WEIGHT = dict(zip([0,1], len(shuffled_neuron) / (2*np.bincount(shuffled_neuron)) ** 0.5))
+            model.set_weight(WEIGHT)
+
         thread = ThreadWithReturnValue(target=model.single_run,
                                        args=(normalized_df, shuffled_neuron, 0))  # no test on purpose!
         threads.append(thread)
@@ -415,7 +422,12 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
         return True
 
     # model = SVM_model(cv=CV)
-    model = SVMModel(cv=CONF["CV"], multi_threaded=True)
+    model = SVMModel(cv=CONF["CV"], multi_threaded=True, upsample=CONF.get('UPSAMPLING', True))
+    if not CONF.get('UPSAMPLING', True):
+        WEIGHT = dict(zip([0,1], len(neuron) / ( 2 * np.bincount(neuron) )))
+        if CONF["SQRT_WEIGHT"]:
+            WEIGHT = dict(zip([0,1], len(neuron) / ( 2 * np.bincount(neuron) ) ** 0.5))
+        model.set_weight(WEIGHT)
 
     design_shape, axes, fig = SVM_utils.design_axes("")  # neuron description
     svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm = model(normalized_df, neuron)

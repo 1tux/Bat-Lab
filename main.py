@@ -121,6 +121,8 @@ def store_results(results, output_path, nid, day, conf, args):
 
     store_img_plot(img_path, nid, day, new_dir_path)
     copyfile("log.log", f"{new_dir_path}/log.log")
+    copyfile("config.json", f"{new_dir_path}/config.json")
+
 
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")
     open(f"{new_dir_path}/execution_line.txt", "w").write(" ".join(args))

@@ -359,8 +359,9 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
     df['timeframe'] = df.index
 
     if neuron.sum() < CONF.get('MIN_SPIKES', 500):
-        print("Too few spikes (< 500)")
+        print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
         return True
+        
     if CONF["BINNING"]:
         df, neuron = SVM_utils.bin_df_and_neuron(df, neuron, bin_size=5)
 

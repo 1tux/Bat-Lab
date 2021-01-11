@@ -9,7 +9,9 @@ def get_minimal_shift(minimal_shift_in_minutes=30):
 
 def shuffling(neuron, num=1000):
     random.seed(1337)
-    minimum = get_minimal_shift(10)  # 3 * len(neuron) // 10 # 150K - 100 mins -> 45K 30. 45/150 -> 9/30 -> 3/10
+    # 3 * len(neuron) // 10 # 150K - 100 mins -> 45K 30. 45/150 -> 9/30 -> 3/10
+    # the minimum is either 10 minutes, or when not enough datapoints, 10% of them.
+    minimum = min(get_minimal_shift(10), len(neuron) // 10)  
     old_idx = set([0])
     idx = 0
 

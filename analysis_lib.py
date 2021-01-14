@@ -229,8 +229,8 @@ def plot_basic_plots(dataframe, neuron, model_spikes, axes, bats, design_shape):
     # Plot basic plots
     for i, bat_id in enumerate(bats):
         # handle polar plot for head-direction plot for the recorded bat
-        if str(bat_id) == "0":
-            axes[i * 4 + 2] = plt.subplot2grid(design_shape, (i + 1, 2), projection='polar')
+        # if str(bat_id) == "0":
+        #    axes[i * 4 + 2] = plt.subplot2grid(design_shape, (i + 1, 2), projection='polar')
 
         axes_per_bat = axes[i * 4:i * 4 + 4]
         plot_basic_plots_per_bat(dataframe, neuron, model_spikes, axes_per_bat, str(bat_id))

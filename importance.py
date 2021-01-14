@@ -44,6 +44,7 @@ def agg_importance_by_meaning(imp, names):
     if 'BAT_0' in entities:
         agg_map.pop("ego-centric")
         agg_map['head-direction'] = ["HD", "HD^2"]  # , "HD^0.5"
+        agg_map["near-D"] = ["nD", "nD^2"]
         for agg_f in agg_map:
             ret_d[f"BAT_0_EF_{agg_f}"] = 0
             for f in agg_map[agg_f]:

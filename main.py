@@ -18,8 +18,10 @@ logger = logging.getLogger()
 fh = logging.FileHandler('log.log', mode='w')
 logger.addHandler(fh)
 
+cpath = ""
 
 def handle_args(args):
+    global cpath
     """ Handles arguments with argparse.  
         Verifies that behavioral and neuronal data days are matching.
     """
@@ -38,6 +40,7 @@ def handle_args(args):
 
     behavioral_data_path = args.bpath[0]
     neural_data_path = args.npath[0]
+    cpath = args.cpath
     conf = json.load(open(args.cpath))
     output_path = args.opath
     try:
@@ -121,7 +124,7 @@ def store_results(results, output_path, nid, day, conf, args):
 
     store_img_plot(img_path, nid, day, new_dir_path)
     copyfile("log.log", f"{new_dir_path}/log.log")
-    copyfile("config.json", f"{new_dir_path}/config.json")
+    copyfile(cpath, f"{new_dir_path}/config.json")
 
 
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")

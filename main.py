@@ -13,15 +13,13 @@ import pandas as pd
 import logging
 import shutil
 import os.path
+import config
 
 logger = logging.getLogger()
 fh = logging.FileHandler('log.log', mode='w')
 logger.addHandler(fh)
 
-cpath = ""
-
 def handle_args(args):
-    global cpath
     """ Handles arguments with argparse.  
         Verifies that behavioral and neuronal data days are matching.
     """
@@ -40,8 +38,7 @@ def handle_args(args):
 
     behavioral_data_path = args.bpath[0]
     neural_data_path = args.npath[0]
-    cpath = args.cpath
-    conf = json.load(open(args.cpath))
+    config.Config.from_file(args.cpath)
     output_path = args.opath
     try:
         net = {1: "NET1", 3: "NET3"}[args.n]
@@ -63,7 +60,7 @@ def handle_args(args):
     if day != day2:
         logging.warning(days_err_msg)
 
-    return behavioral_data_path, neural_data_path, conf, output_path, nid, day2, net, exclude
+    return behavioral_data_path, neural_data_path, output_path, nid, day2, net, exclude
 
 
 def create_new_results_dir(nid, day, output_path="/data/results"):
@@ -91,7 +88,7 @@ def store_img_plot(img_path, nid, day, new_dir_path):
     # print(new_img_path_p)
 
 
-def store_results(results, output_path, nid, day, conf, args):
+def store_results(results, output_path, nid, day, args):
     """ `results` is a tuple returned by cell_analysis.  
         Stores the results in csvz in some output folder.  
         Returns the folder path of the results.  
@@ -101,9 +98,9 @@ def store_results(results, output_path, nid, day, conf, args):
     df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, shuffles_df = results
     new_dir_path, new_dir_path_override = create_new_results_dir(nid, day, output_path)
 
-    if conf.get('STORE_DATAFRAME', 1):
+    if config.Config.get("STORE_DATAFRAME"):
         df.to_csv(f"{new_dir_path}/dataframe.csv.zip")
-    if conf.get('STORE_NORMALIZED_DATAFRAME', 1):
+    if config.Config.get("STORE_NORMALIZED_DATAFRAME"):
         normalized_df.to_csv(f"{new_dir_path}/normalized_df.csv.zip")
     neuron.to_csv(f"{new_dir_path}/neuron.csv.zip")
 
@@ -124,13 +121,13 @@ def store_results(results, output_path, nid, day, conf, args):
 
     store_img_plot(img_path, nid, day, new_dir_path)
     copyfile("log.log", f"{new_dir_path}/log.log")
-    copyfile(cpath, f"{new_dir_path}/config.json")
+    copyfile(config.Config.get("CONF_PATH"), f"{new_dir_path}/config.json")
 
 
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")
     open(f"{new_dir_path}/execution_line.txt", "w").write(" ".join(args))
 
-    if conf.get('OVERWRITE', 1):
+    if config.Config.get('OVERWRITE'):
         # overwrite last neuron directory
         if os.path.exists(new_dir_path_override):
             shutil.rmtree(new_dir_path_override)
@@ -144,9 +141,9 @@ def main(args):
     Checks and converts the neural data to binary.  
     Stores results and pop-up the results directory.  
     """
-    behavioral_data_path, neural_data_path, conf, output_path, nid, day, net, exclude = handle_args(args)
+    behavioral_data_path, neural_data_path, output_path, nid, day, net, exclude = handle_args(args)
 
-    dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude, conf)
+    dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude)
     neuron = parse_real_neural_data.parse_neural_data_from_path(neural_data_path, behavioral_data_path)
 
     if len(neuron.value_counts()) != 2:
@@ -154,10 +151,10 @@ def main(args):
         logging.warning("replacing all > 1 labels with 1")
         neuron[neuron > 0] = 1  # make spikes a binary vector
 
-    results = analysis_lib.cell_analysis(dataset, neuron, "Real Neuron", conf)
-    results_dir = store_results(results, output_path, nid, day, conf, args)
+    results = analysis_lib.cell_analysis(dataset, neuron, "Real Neuron")
+    results_dir = store_results(results, output_path, nid, day, args)
     logging.info("Done!")
-    if conf['POPUP_RESULTS']: os.startfile(os.getcwd() + "/" + results_dir)
+    if config.Config.get('POPUP_RESULTS'): os.startfile(os.getcwd() + "/" + results_dir)
 
 
 if __name__ == "__main__":

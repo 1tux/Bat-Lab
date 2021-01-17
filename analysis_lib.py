@@ -23,6 +23,8 @@ import uuid
 
 from models import SVMModel
 from constants import *
+import config
+
 
 pd.set_option('display.max_columns', None)
 matplotlib.rcParams["figure.dpi"] = 80  # high quality images
@@ -32,25 +34,6 @@ FORMAT = '%(asctime)s %(message)s'
 log.basicConfig(format=FORMAT)
 EXPERIMENT_READY = False
 
-CONF = {
-    "GEN_DATA": False,
-    "REAL_BEHAVIORAL_DATA": True,
-    "CACHED_BEHAVIORAL_DATA": True,
-    "SHOW_PLOTS": False,
-    "PER_BAT_ANALYSIS": False,
-    "FE": True,
-    "BINNING": False,
-    "NOISE_CANCELLATION": True,
-    "SQRT_WEIGHT": False,
-    "WITH_PAIRS": True,
-
-    "CV": 10,
-    "N_SHUFFLES": 50,
-    "FI_NUM": 5,
-    "POPUP_RESULTS": True,
-    "MIN_SPIKES": 500,
-    "MIN_DATAPOINTS": 500000
-}
 
 VERBOSE = log.INFO  # log.INFO
 WARNING = log.WARNING
@@ -131,7 +114,7 @@ def print_analysis_header(nid, spikes, cell_title):
     """ Prints a nice logo before analysis.  """
     print("*" * 80)
     print(f"Neuron: {nid + 1}/{len(spikes)} {cell_title.title()}")
-    print(f"Shuffles: {CONF['N_SHUFFLES']}, CV: {CONF['CV']}")
+    print(f"Shuffles: {config.Config.get('N_SHUFFLES')}, CV: {config.Config.get('CV')}")
     print("*" * 80)
 
 
@@ -248,24 +231,24 @@ def plot_cm_plots(train_cm, test_cm, std_train_cm, std_test_cm, axes):
 
 
 def plot_feature_importance_no_shuffles(imp_table, agg_imp_table, axes, total_features):
-    importance.plot_f_importance_from_table(imp_table[::-1], axes[0], CONF["FI_NUM"], total_features, None)
-    importance.plot_f_importance_from_table(agg_imp_table[::-1], axes[1], CONF["FI_NUM"], total_features, None)
+    importance.plot_f_importance_from_table(imp_table[::-1], axes[0], config.Config.get("FI_NUM"), total_features, None)
+    importance.plot_f_importance_from_table(agg_imp_table[::-1], axes[1], config.Config.get("FI_NUM"), total_features, None)
 
 
 def plot_feature_importance_shuffles(imp_table, agg_imp_table, axes, total_features, shuffled_vals, train_cm, test_cm):
     f_imp_names, agg_imp_names, t_shuffled_vals, shuffles_df, sh_df, sh_df2, shuffled_b_accuracy = handle_shuffle_vals(
         shuffled_vals, imp_table, agg_imp_table, train_cm, test_cm)
-    importance.plot_f_importance_from_table(imp_table[f_imp_names], axes[0], CONF["FI_NUM"], total_features,
+    importance.plot_f_importance_from_table(imp_table[f_imp_names], axes[0], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[3]))
-    sns.swarmplot(x="importance", y="name", hue="type", data=sh_df, ax=axes[0], order=f_imp_names[:CONF["FI_NUM"]])
-    importance.plot_f_importance_from_table(imp_table[f_imp_names], axes[0], CONF["FI_NUM"], total_features,
+    sns.swarmplot(x="importance", y="name", hue="type", data=sh_df, ax=axes[0], order=f_imp_names[:config.Config.get("FI_NUM")])
+    importance.plot_f_importance_from_table(imp_table[f_imp_names], axes[0], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[3]))
     axes[0].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
 
-    importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], CONF["FI_NUM"], total_features,
+    importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[4]))
-    sns.swarmplot(x="importance", y="name", hue="type", data=sh_df2, ax=axes[1], order=agg_imp_names[:CONF["FI_NUM"]])
-    importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], CONF["FI_NUM"], total_features,
+    sns.swarmplot(x="importance", y="name", hue="type", data=sh_df2, ax=axes[1], order=agg_imp_names[:config.Config.get("FI_NUM")])
+    importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[4]))
     axes[1].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
     return t_shuffled_vals, shuffles_df, shuffled_b_accuracy
@@ -343,7 +326,7 @@ def plot_result_per_model(axes, fig, design_shape,
     filename = str(uuid.uuid4())
     img_path = "pics/" + filename + ".png"
     plt.savefig(img_path, dpi=100)
-    if CONF["SHOW_PLOTS"]:
+    if config.Config.get("SHOW_PLOTS"):
         plt.show()
     plt.close(fig)
 
@@ -352,17 +335,15 @@ def plot_result_per_model(axes, fig, design_shape,
 
 # TODO: split this function into smaller pieces.
 # TODO: add support for MIN_SPIKES configuration.
-def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
-    CONF.update(new_confs)
-
+def cell_analysis(df, neuron, neuron_description=""):
     # add timeframe feture
     df['timeframe'] = df.index
 
-    if neuron.sum() < CONF.get('MIN_SPIKES', 500):
-        print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
+    if neuron.sum() < config.Config.get("MIN_SPIKES"):
+        print(f'Too few spikes (< conf:{config.Config.get("MIN_SPIKES")})')
         return True
 
-    if CONF["BINNING"]:
+    if config.Config.get("BINNING"):
         df, neuron = SVM_utils.bin_df_and_neuron(df, neuron, bin_size=5)
 
     # remove behavioral data where neural data is nan
@@ -380,12 +361,12 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
 
     neuron_dropped = neuron[df.index].reset_index(drop=True)
 
-    if neuron_dropped.sum() < CONF.get('MIN_SPIKES', 500):
-        print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
+    if neuron_dropped.sum() < config.Config.get("MIN_SPIKES"):
+        print(f'Too few spikes (< conf:{config.Config.get("MIN_SPIKES")})')
         return True
 
-    if len(df_) < CONF.get('MIN_DATAPOINTS', 5000):  # ~ 33 minutes
-        print(f"Too few data points ( < conf:{CONF.get('MIN_DATAPOINTS', 5000)})")
+    if len(df_) < config.Config.get("MIN_DATAPOINTS"):  # ~ 33 minutes
+        print(f'Too few data points ( < conf:{config.Config.get("MIN_DATAPOINTS")})')
         print(orig_df_nans.head(20))
         return True
 
@@ -393,14 +374,14 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
     neuron_dropped.drop(columns=['timeframe'], inplace=True)
     normalized_df.drop(columns=['timeframe'], inplace=True)
 
-    for xid, shuffled_neuron in enumerate(shuffling.shuffling(neuron_dropped, CONF["N_SHUFFLES"])):
+    for xid, shuffled_neuron in enumerate(shuffling.shuffling(neuron_dropped, config.Config.get("N_SHUFFLES"))):
         shuffled_neuron = shuffled_neuron.astype('int')
-        model = SVMModel(multi_threaded=True, upsample=CONF.get('UPSAMPLING', True))
+        model = SVMModel(multi_threaded=True, upsample=config.Config.get('UPSAMPLING'))
 
-        if not CONF.get('UPSAMPLING', True):
+        if not config.Config.get('UPSAMPLING'):
             WEIGHT = dict(zip([0,1], len(shuffled_neuron) / (2*np.bincount(shuffled_neuron))))
-            if CONF["SQRT_WEIGHT"]:
-                if CONF["SQRT_WEIGHT"]: WEIGHT = dict(zip([0,1], len(shuffled_neuron) / (2*np.bincount(shuffled_neuron)) ** 0.5))
+            if config.Config.get("SQRT_WEIGHT"):
+                if config.Config.get("SQRT_WEIGHT"): WEIGHT = dict(zip([0,1], len(shuffled_neuron) / (2*np.bincount(shuffled_neuron)) ** 0.5))
             model.set_weight(WEIGHT)
 
         thread = ThreadWithReturnValue(target=model.single_run,
@@ -408,24 +389,24 @@ def cell_analysis(df, neuron, neuron_description="", new_confs=dict()):
         threads.append(thread)
         thread.start()
 
-        if len(threads) == CONF["N_SHUFFLES"]:
+        if len(threads) == config.Config.get("N_SHUFFLES"):
             for thread in threads:
                 svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm = thread.join()
                 shuffled_vals.append([svm_model, train_cm[0], test_cm[0], imp_table, agg_imp_table])
 
-    assert (len(shuffled_vals) == CONF["N_SHUFFLES"])
+    assert (len(shuffled_vals) == config.Config.get("N_SHUFFLES"))
     neuron = neuron[df.index].reset_index(drop=True)
     df = df.reset_index(drop=True)
 
-    if neuron.sum() < CONF.get('MIN_SPIKES', 500):
-        print(f"Too few spikes (< conf:{CONF.get('MIN_SPIKES', 500)})")
+    if neuron.sum() < config.Config.get('MIN_SPIKES'):
+        print(f"Too few spikes (< conf:{config.Config.get('MIN_SPIKES')})")
         return True
 
     # model = SVM_model(cv=CV)
-    model = SVMModel(cv=CONF["CV"], multi_threaded=True, upsample=CONF.get('UPSAMPLING', True))
-    if not CONF.get('UPSAMPLING', True):
+    model = SVMModel(cv=config.Config.get("CV"), multi_threaded=True, upsample=config.Config.get('UPSAMPLING'))
+    if not config.Config.get('UPSAMPLING'):
         WEIGHT = dict(zip([0,1], len(neuron) / ( 2 * np.bincount(neuron) )))
-        if CONF["SQRT_WEIGHT"]:
+        if config.Config.get("SQRT_WEIGHT"):
             WEIGHT = dict(zip([0,1], len(neuron) / ( 2 * np.bincount(neuron) ) ** 0.5))
         model.set_weight(WEIGHT)
 
@@ -448,13 +429,11 @@ def exclude_bats(dataset, exclude=()):
     return dataset
 
 
-def behavioral_data_to_dataframe(behavioral_data_path, net="NET1", exclude=(), conf=dict()):
-    CONF.update(conf)
-    df = SVM_utils.get_df_from_file_path(behavioral_data_path, CONF["REAL_BEHAVIORAL_DATA"],
-                                         CONF["CACHED_BEHAVIORAL_DATA"], net)
+def behavioral_data_to_dataframe(behavioral_data_path, net="NET1", exclude=()):
+    df = SVM_utils.get_df_from_file_path(behavioral_data_path, net) # config.Config.get("REAL_BEHAVIORAL_DATA"), config.Config.get("CACHED_BEHAVIORAL_DATA")
     df = exclude_bats(df, exclude)
-    if CONF["FE"]:
-        df = feature_engineering.engineer(df, CONF)
+    if config.Config.get("FE"):
+        df = feature_engineering.engineer(df)
     return df
 
 
@@ -478,7 +457,7 @@ def run_experiment():
         if not len(spikes):
             continue
 
-        if CONF["NOISE_CANCELLATION"]:
+        if config.Config.get.get("NOISE_CANCELLATION"):
             spikes = list(map(SVM_utils.noise_cancellation, spikes))
         [print(s.mean()) for s in spikes]
         for nid, n in enumerate(spikes):

@@ -1,7 +1,7 @@
 import dataset
 import numpy as np
 import re
-
+import config
 
 def add_squared_features_old(df, other_bats, pair_bats_names=[]):
     for f in ["X", "Y", "HD"]:
@@ -118,14 +118,14 @@ def get_bets_in_df(df):
     return list(set(df.columns.str.extract(r'BAT_(\d)')[0].to_list()))
 
 
-def engineer(df, config):
+def engineer(df):
     bats = get_bets_in_df(df)
     other_bats = [x for x in bats if x != '0']
 
     # pairwise_distance
     df = add_nearest_distance(df)
     df = add_squared_features(df, other_bats)
-    if config["WITH_PAIRS"]:
+    if config.Config.get("WITH_PAIRS"):
         df = add_pairwise_distance(df, other_bats)
         df, pair_bats_names = add_pairwise_features(df, other_bats)
     # df = add_squared_features(df, pair_bats_names)

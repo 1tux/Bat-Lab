@@ -11,6 +11,7 @@ from sklearn.utils import resample
 
 import behavior_parse
 import dataset
+import config
 
 
 def upsample(df, neuron):
@@ -259,7 +260,9 @@ def noise_cancellation(n):
     return new_n
 
 
-def get_df_from_file_path(file_path, REAL_BEHAVIORAL_DATA, CACHED_BEHAVIORAL_DATA, net="NET1"):
+def get_df_from_file_path(file_path, net="NET1"):
+    REAL_BEHAVIORAL_DATA = config.Config.get("REAL_BEHAVIORAL_DATA")
+    CACHED_BEHAVIORAL_DATA = config.Config.get("CACHED_BEHAVIORAL_DATA")
     if REAL_BEHAVIORAL_DATA:
         cache_file_path1 = file_path.replace(".mat", "net1.csv")
         cache_file_path2 = file_path.replace(".mat", "net3.csv")

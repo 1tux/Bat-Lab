@@ -11,7 +11,7 @@ START_W_P = 0.1  # probability to start walking
 KEEP_W_P = 0.9  # probability to keep walking
 
 SEED = 1337
-N_BATS = 5
+N_BATS = 0 # 5
 FRAME_RATE = 25  # frames per seconds
 TOTAL_TIME_POINTS = 150000  # TOTAL_TIME_POINTS / FRAME_RATE / 60 = 100 minutes = 1 hour 40 minutes
 SPIKE_RATE = 25  # 1

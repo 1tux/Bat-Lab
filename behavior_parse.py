@@ -3,14 +3,9 @@ import numpy as np
 import pandas as pd
 import dataset
 from constants import *
+import config
 
-BAT_NAME_TO_ID = {
-    "A": 0,
-    "O": 1,
-    "2": 2,
-    "P": 3,
-    "X": 4,
-}
+BAT_NAME_TO_ID = dict()
 
 NET1_MIN_X = 150
 NET1_MAX_X = 250
@@ -23,6 +18,19 @@ NET3_MIN_Y = 170
 NET3_MAX_Y = 220
 
 
+def construct_bat_name_to_id_map(f):
+    global BAT_NAME_TO_ID
+    nbats = config.Config.get("N_BATS")
+
+    bat_names = []
+    for bat_id in range(nbats):
+        bat_name = chr(f[f['simplified_behaviour']['name'][bat_id][0]][0][0])
+        if bat_name != config.Config.get("RECORED_BAT"):
+            bat_names.append(bat_name)
+
+    BAT_NAME_TO_ID = dict(zip(bat_names, range(1, len(bat_names)+1)))
+    BAT_NAME_TO_ID[config.Config.get("RECORED_BAT")] = 0
+
 def points_to_hd(x1, y1, x2, y2):
     dx = (x2 - x1)
     dy = (y2 - y1)
@@ -32,6 +40,7 @@ def points_to_hd(x1, y1, x2, y2):
 
 
 def extract_data_from_file(f, i):
+    global BAT_NAME_TO_ID
     name = chr(f[f["simplified_behaviour"]["name"][i][0]][0][0])
     bat_id = BAT_NAME_TO_ID[name]
     x1 = f[f["simplified_behaviour"]["pos_on_net"][i][0]][0] * 100
@@ -75,7 +84,11 @@ def parse_matlab_file(path):
     f = h5py.File(path, "r")
     IDs, DF1s, DF3s, DFs = [], [], [], []
 
-    for i in range(N_BATS):
+    nbats = f['simplified_behaviour']['name'].shape[0]
+    config.Config.set("N_BATS", nbats)
+    construct_bat_name_to_id_map(f)
+
+    for i in range(nbats):
         name, bat_id, x1, y1, x2, y2 = extract_data_from_file(f, i)
         IDs.append(bat_id)
 
@@ -93,8 +106,8 @@ def parse_matlab_file(path):
 
     # sort dataframes by id
     IDs, DF1s, DF3s = list(zip(*sorted(zip(IDs, DF1s, DF3s))))
-    DF1s = dict(zip(range(N_BATS), DF1s))
-    DF3s = dict(zip(range(N_BATS), DF3s))
+    DF1s = dict(zip(range(nbats), DF1s))
+    DF3s = dict(zip(range(nbats), DF3s))
 
     # DF1s = dataset.add_pairs_bats(DF1s)
     # DF3s = dataset.add_pairs_bats(DF3s)

@@ -39,18 +39,6 @@ VERBOSE = log.INFO  # log.INFO
 WARNING = log.WARNING
 log.getLogger().setLevel(VERBOSE)  # log.WARNING)
 
-BAT_NAME_TO_ID = {
-    "A": 0,
-    "O": 1,
-    "2": 2,
-    "P": 3,
-    "X": 4,
-}
-
-
-# print(BAT_NAME_TO_ID)
-
-
 # TODO: remove this function from here, it is too manual and has nothing to do with analysis library.
 def spike_loading(day):
     """ Manual function, loads specific neural data per day.
@@ -355,6 +343,8 @@ def cell_analysis(df, neuron, neuron_description=""):
     normalized_df = SVM_utils.manual_normalization(df)
     normalized_df.reset_index(drop=True, inplace=True)
     df_ = df.reset_index(drop=True)
+
+    print(df_.head())
 
     shuffled_vals = []
     threads = []

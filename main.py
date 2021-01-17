@@ -24,20 +24,21 @@ def handle_args(args):
         Verifies that behavioral and neuronal data days are matching.
     """
     parser = argparse.ArgumentParser(description='Analyze cell.')
-    parser.add_argument('bpath', metavar='behavioral_path', type=str, nargs=1,
-                        help='Path for behavioral data (mat/csv)')
-    parser.add_argument('npath', metavar='neural_path', type=str, nargs=1, help='Path for neural data (mat/csv)')
+    parser.add_argument('bpath', metavar='behavioral_path', type=str, help='Path for behavioral data (mat/csv)')
+    parser.add_argument('npath', metavar='neural_path', type=str, help='Path for neural data (mat/csv)')
     parser.add_argument('cpath', metavar='config_path', type=str, nargs='?', help='Path for configuration file (json)',
                         default='config.json')
     parser.add_argument('opath', metavar='output_dir', type=str, nargs='?', help='Output directory',
                         default='data/results')
     parser.add_argument('-n', metavar='net', type=int, help='which net, could be 1 or 3', default=1)
-    parser.add_argument('--exclude', type=str, nargs='*', default=[])
+    parser.add_argument('-r', type=str, default='A')
+    parser.add_argument('-X', metavar='eXclude', type=str, nargs='*', default=[])
+    parser.add_argument('-I', metavar='Include', type=str, nargs='*', default=[])
 
     args = parser.parse_args()
 
-    behavioral_data_path = args.bpath[0]
-    neural_data_path = args.npath[0]
+    behavioral_data_path = args.bpath
+    neural_data_path = args.npath
     config.Config.from_file(args.cpath)
     output_path = args.opath
     try:
@@ -45,8 +46,11 @@ def handle_args(args):
     except:
         raise Exception("Wrong Net! should have been either 1 or 3 %s" % str(args.n))
 
-    exclude = args.exclude
-    assert len(exclude) < 5, Exception("You can exculde up to 4 bats")
+    exclude = args.X
+    include = args.I
+    assert not exclude or not include, "exclude and include arguments are mutually exclusive"
+
+    config.Config.set("RECORED_BAT", args.r)
 
     bat_name, day, _, _ = Path(behavioral_data_path).stem.split('_')
     nid, bat_name2, day2 = Path(neural_data_path).stem.split('_')
@@ -146,10 +150,12 @@ def main(args):
     dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude)
     neuron = parse_real_neural_data.parse_neural_data_from_path(neural_data_path, behavioral_data_path)
 
+    print(dataset.columns)
+
     if len(neuron.value_counts()) != 2:
         logging.warning("Error, neural data is not binary!")
         logging.warning("replacing all > 1 labels with 1")
-        neuron[neuron > 0] = 1  # make spikes a binary vector
+        neuron[neuron > 0] = 1  # convert spikes vector to a binary vector
 
     results = analysis_lib.cell_analysis(dataset, neuron, "Real Neuron")
     results_dir = store_results(results, output_path, nid, day, args)

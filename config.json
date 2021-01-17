@@ -11,13 +11,13 @@
     "SQRT_WEIGHT" : 0,
     "OVERWRITE" : 0,
     
-    "CV" : 3,
-    "N_SHUFFLES" : 10,
-    "FI_NUM" : 7,
+    "CV" : 10,
+    "N_SHUFFLES" : 30,
+    "FI_NUM" : 15,
     "UPSAMPLING": 1,
     "POPUP_RESULTS" : 1,
     "MIN_SPIKES" : 500,
-    "MIN_DATAPOINTS" : 50000,
+    "MIN_DATAPOINTS" : 15000,
     "STORE_DATAFRAME": 0,
     "STORE_NORMALIZED_DATAFRAME": 0
 }

@@ -25,9 +25,9 @@ class Config:
         return Config.get_conf(key)
 
     @classmethod
-    def set(cls, key, value):
-        if key not in cls._conf:
-            raise Exception(f"Please set the {key} variable in the config file")
+    def set(cls, key, value, allow_override=False):
+        if key in cls._conf and not allow:
+            raise Exception(f"The {key} is already set! use allow_overeide=True, or another name")
         cls._conf[key] = value
 
     @classmethod

@@ -61,7 +61,7 @@ def add_pairwise_features(df, other_bats):
         # (x_1) * (x_2)^2
         # (x_1) * (x_2)
     # to support AND neurons:
-        # (x_1-x_2)^2 + (y_2-y_1)^2
+        # (x_1-x_2)^2 + (y_2-y_1)^2 (pairwise distance)
     """
     f_names = map(lambda x: re.findall("BAT_[1-9]_F_(.*?)$", x), df.columns)
     f_names_flat = list(set([item for sublist in f_names for item in sublist]))

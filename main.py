@@ -19,7 +19,7 @@ logger = logging.getLogger()
 fh = logging.FileHandler('log.log', mode='w')
 logger.addHandler(fh)
 
-def handle_args(args):
+def handle_args():
     """ Handles arguments with argparse.  
         Verifies that behavioral and neuronal data days are matching.
     """
@@ -92,7 +92,7 @@ def store_img_plot(img_path, nid, day, new_dir_path):
     # print(new_img_path_p)
 
 
-def store_results(results, output_path, nid, day, args):
+def store_results(results, output_path, nid, day):
     """ `results` is a tuple returned by cell_analysis.  
         Stores the results in csvz in some output folder.  
         Returns the folder path of the results.  
@@ -129,7 +129,7 @@ def store_results(results, output_path, nid, day, args):
 
 
     if shuffles_df is not None: shuffles_df.to_csv(f"{new_dir_path}/shuffles_dataframe.csv")
-    open(f"{new_dir_path}/execution_line.txt", "w").write(" ".join(args))
+    open(f"{new_dir_path}/execution_line.txt", "w").write(" ".join(sys.argv))
 
     if config.Config.get('OVERWRITE'):
         # overwrite last neuron directory
@@ -140,12 +140,12 @@ def store_results(results, output_path, nid, day, args):
     return new_dir_path
 
 
-def main(args):
+def main():
     """ Expects paths for running and storing the analaysis.  
     Checks and converts the neural data to binary.  
     Stores results and pop-up the results directory.  
     """
-    behavioral_data_path, neural_data_path, output_path, nid, day, net, exclude = handle_args(args)
+    behavioral_data_path, neural_data_path, output_path, nid, day, net, exclude = handle_args()
 
     dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude)
     neuron = parse_real_neural_data.parse_neural_data_from_path(neural_data_path, behavioral_data_path)
@@ -158,10 +158,10 @@ def main(args):
         neuron[neuron > 0] = 1  # convert spikes vector to a binary vector
 
     results = analysis_lib.cell_analysis(dataset, neuron, "Real Neuron")
-    results_dir = store_results(results, output_path, nid, day, args)
+    results_dir = store_results(results, output_path, nid, day)
     logging.info("Done!")
     if config.Config.get('POPUP_RESULTS'): os.startfile(os.getcwd() + "/" + results_dir)
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()

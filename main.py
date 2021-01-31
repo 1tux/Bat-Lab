@@ -101,6 +101,13 @@ def model_coeffs_to_store(columns_names, coeffs):
     df = pd.concat(dfs)
     return df
 
+def cms_to_store(confusion_matrices):
+    column_names = ["Actual=0, Predicted=0", "Actual=0, Predicted=1","Actual=1, Predicted=0","Actual=1, Predicted=1"]
+    confusion_matrices = map(lambda x: x.reshape(4), confusion_matrices)
+
+    return pd.DataFrame(confusion_matrices, columns=column_names)
+
+
 def store_results(results, output_path, nid, day):
     """ `results` is a tuple returned by cell_analysis.  
         Stores the results in csvz in some output folder.  
@@ -110,6 +117,14 @@ def store_results(results, output_path, nid, day):
     logging.shutdown()
     df, normalized_df, neuron, svm_model, train_cm, test_cm, imp_table, agg_imp_table, std_train_cm, std_test_cm, shuffled_vals, img_path, shuffles_df = results
     new_dir_path, new_dir_path_override = create_new_results_dir(nid, day, output_path)
+
+    t_shuffled_vals = list(zip(*shuffled_vals))
+    shuffles_cm_df = cms_to_store(t_shuffled_vals[1])
+    train_cm_df = cms_to_store(train_cm)
+    test_cm_df = cms_to_store(train_cm)
+    shuffles_cm_df.to_csv(f"{new_dir_path}/shuffles_cm_table.csv")
+    train_cm_df.to_csv(f"{new_dir_path}/train_cm_table.csv")
+    test_cm_df.to_csv(f"{new_dir_path}/test_cm_table.csv")
 
     if config.Config.get("STORE_DATAFRAME"):
         df.to_csv(f"{new_dir_path}/dataframe.csv.zip")

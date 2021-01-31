@@ -228,17 +228,22 @@ def plot_feature_importance_shuffles(imp_table, agg_imp_table, axes, total_featu
         shuffled_vals, imp_table, agg_imp_table, train_cm, test_cm)
     importance.plot_f_importance_from_table(imp_table[f_imp_names], axes[0], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[3]))
-    sns.swarmplot(x="importance", y="name", hue="type", data=sh_df, ax=axes[0], order=f_imp_names[:config.Config.get("FI_NUM")])
+    #epsilon = 0.001
+    #sh_df = sh_df[sh_df.importance > epsilon]
+    #sh_df2 = sh_df2[sh_df2.importance > epsilon]
+    warnings.simplefilter("ignore", UserWarning)
+    sns.swarmplot(s=3, x="importance", y="name", hue="type", data=sh_df, ax=axes[0], order=f_imp_names[:config.Config.get("FI_NUM")])
     importance.plot_f_importance_from_table(imp_table[f_imp_names], axes[0], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[3]))
     axes[0].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
 
     importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[4]))
-    sns.swarmplot(x="importance", y="name", hue="type", data=sh_df2, ax=axes[1], order=agg_imp_names[:config.Config.get("FI_NUM")])
+    sns.swarmplot(s=3, x="importance", y="name", hue="type", data=sh_df2, ax=axes[1], order=agg_imp_names[:config.Config.get("FI_NUM")])
     importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[4]))
     axes[1].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
+    warnings.simplefilter("default", UserWarning)
     return t_shuffled_vals, shuffles_df, shuffled_b_accuracy
 
 
@@ -251,6 +256,7 @@ def confusion_matrix_to_false_positive(cm):
 
 
 def plot_other_plots(shuffles_df, t_shuffled_vals, train_cm, test_cm, shuffled_b_accuracy, axes):
+    warnings.simplefilter("ignore", UserWarning)
     sns.swarmplot(x="value", y="name", hue="type", data=shuffles_df, ax=axes[0])
     axes[0].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
 
@@ -272,7 +278,7 @@ def plot_other_plots(shuffles_df, t_shuffled_vals, train_cm, test_cm, shuffled_b
     axes[1].set_ylim(0, 1)
 
     sns.distplot(shuffled_b_accuracy, bins=10, kde=True, ax=axes[2])
-
+    warnings.simplefilter("default", UserWarning)
 
 # TODO: this needs to be split into different functions, each plotting different things.
 def plot_result_per_model(axes, fig, design_shape,
@@ -344,7 +350,7 @@ def cell_analysis(df, neuron, neuron_description=""):
     normalized_df.reset_index(drop=True, inplace=True)
     df_ = df.reset_index(drop=True)
 
-    print(df_.head())
+    # print(df_.head())
 
     shuffled_vals = []
     threads = []

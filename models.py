@@ -34,6 +34,7 @@ class Model:
         self.test_cm = None
         self.std_train_cm = None
         self.std_test_cm = None
+        self.svm_models = None
         pass
 
     def train(self, X_train, y_train):
@@ -64,8 +65,7 @@ class Model:
         self.std_train_cm = self.train_cm * np.nan
         self.std_test_cm = self.test_cm * np.nan
 
-        return self, [self.train_cm], [
-            self.test_cm], self.imp_table, self.agg_imp_table, self.std_train_cm, self.std_test_cm
+        return self, [self.train_cm], [self.test_cm], self.imp_table, self.agg_imp_table, self.std_train_cm, self.std_test_cm
 
     def cross_validate(self, X, y):
         svm_models = []
@@ -102,6 +102,10 @@ class Model:
                 train_cms.append(train_cm)
                 test_cms.append(test_cm)
 
+        # self.svm_models = svm_models
+        # TODO: change the code so we don't need this line
+        svm_models[0].svm_models = svm_models
+
         log.info("finished CV, agg results..")
         imp_table = importance.avg_models_importance(svm_models, X, agg=False)
         log.info("finished CV, agg results2..")
@@ -117,6 +121,7 @@ class Model:
 
         log.info("finished CV, Done AVG Confusion Matrices!")
 
+        # TODO: return self instead, or actually not return anything at all!
         return svm_models[0], train_cms, test_cms, imp_table, agg_imp_table, std_train_cm, std_test_cm
 
 
@@ -158,6 +163,12 @@ class SVMModel(Model):
     def set_weight(self, weight):
         self.model.class_weight = weight
 
+    def get_all_importances(self):
+        assert self.svm_models is not None, "you can't store all CV without running CV"
+        coeffs = []
+        for m in self.svm_models:
+            coeffs.append(m.model.coef_[0])
+        return coeffs
 
 class NN_model(Model):
     pass

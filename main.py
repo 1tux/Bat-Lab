@@ -91,6 +91,15 @@ def store_img_plot(img_path, nid, day, new_dir_path):
     # print(img_path_p)
     # print(new_img_path_p)
 
+def model_coeffs_to_store(columns_names, coeffs):
+    dfs = []
+    for coeff in coeffs:
+        d = dict(zip(columns_names, coeff))
+        for k in d: d[k] = [d[k]]
+        df = pd.DataFrame.from_dict(d)
+        dfs.append(df)
+    df = pd.concat(dfs)
+    return df
 
 def store_results(results, output_path, nid, day):
     """ `results` is a tuple returned by cell_analysis.  
@@ -109,10 +118,9 @@ def store_results(results, output_path, nid, day):
     neuron.to_csv(f"{new_dir_path}/neuron.csv.zip")
 
     # pickle.dump(svm_model, open(f"{new_dir_path}/model.pkl", 'wb')) -> instead of pickling the model, we store only the coefficients.
-    d = dict(zip(df.columns.to_list(), svm_model.get_importances()))
-    for k in d: d[k] = [d[k]]
-    df = pd.DataFrame.from_dict(d)
-    df.to_csv(f"{new_dir_path}/model_coeffs.csv")
+    columns_names = df.columns.to_list()
+    model_coeffs_df = model_coeffs_to_store(columns_names, svm_model.get_all_importances())
+    model_coeffs_df.to_csv(f"{new_dir_path}/model_coeffs.csv")
 
     imp_table.to_csv(f"{new_dir_path}/imp_table.csv")
     agg_imp_table.to_csv(f"{new_dir_path}/agg_imp_table.csv")
@@ -150,7 +158,7 @@ def main():
     dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude)
     neuron = parse_real_neural_data.parse_neural_data_from_path(neural_data_path, behavioral_data_path)
 
-    print(dataset.columns)
+    # print(dataset.columns)
 
     if len(neuron.value_counts()) != 2:
         logging.warning("Error, neural data is not binary!")

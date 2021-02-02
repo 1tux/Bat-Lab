@@ -28,6 +28,10 @@ def upsample(df, neuron):
     df_majority = df_copy[df_copy.neuron == 0]
     df_minority = df_copy[df_copy.neuron == 1]
 
+    # this is a fix, sometimes 1s appear more than 0s!
+    if df_majority.shape[0] < df_minority.shape[0]:
+        df_majority, df_minority = df_minority, df_majority
+
     df_minority_upsampled = resample(df_minority,
                                      replace=True,  # sample with replacement
                                      n_samples=len(df_majority),  # to match majority class

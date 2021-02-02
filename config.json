@@ -12,7 +12,7 @@
     "OVERWRITE" : 0,
     
     "CV" : 10,
-    "N_SHUFFLES" : 100,
+    "N_SHUFFLES" : 5,
     "FI_NUM" : 15,
     "UPSAMPLING": 1,
     "POPUP_RESULTS" : 1,

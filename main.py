@@ -121,7 +121,7 @@ def store_results(results, output_path, nid, day):
     t_shuffled_vals = list(zip(*shuffled_vals))
     shuffles_cm_df = cms_to_store(t_shuffled_vals[1])
     train_cm_df = cms_to_store(train_cm)
-    test_cm_df = cms_to_store(train_cm)
+    test_cm_df = cms_to_store(test_cm)
     shuffles_cm_df.to_csv(f"{new_dir_path}/shuffles_cm_table.csv")
     train_cm_df.to_csv(f"{new_dir_path}/train_cm_table.csv")
     test_cm_df.to_csv(f"{new_dir_path}/test_cm_table.csv")

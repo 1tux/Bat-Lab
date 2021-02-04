@@ -137,6 +137,9 @@ def store_results(results, output_path, nid, day):
     model_coeffs_df = model_coeffs_to_store(columns_names, svm_model.get_all_importances())
     model_coeffs_df.to_csv(f"{new_dir_path}/model_coeffs.csv")
 
+    shuffle_coeffs_df = model_coeffs_to_store(columns_names, [x.get_importances() for x in t_shuffled_vals[0]])
+    shuffle_coeffs_df.to_csv(f"{new_dir_path}/shuffles_coeffs.csv")
+
     imp_table.to_csv(f"{new_dir_path}/imp_table.csv")
     agg_imp_table.to_csv(f"{new_dir_path}/agg_imp_table.csv")
 

@@ -176,8 +176,6 @@ def main():
     dataset = analysis_lib.behavioral_data_to_dataframe(behavioral_data_path, net, exclude)
     neuron = parse_real_neural_data.parse_neural_data_from_path(neural_data_path, behavioral_data_path)
 
-    # print(dataset.columns)
-
     if len(neuron.value_counts()) != 2:
         logging.warning("Error, neural data is not binary!")
         logging.warning("replacing all > 1 labels with 1")

@@ -7,7 +7,7 @@
     "FE" : 1,
     "WITH_PAIRS" : 1, 
     "BINNING" : 0,
-    "NOISE_CANCELLATION" : 0,
+    "NOISE_CANCELLATION" : 1,
     "SQRT_WEIGHT" : 0,
     "OVERWRITE" : 0,
     

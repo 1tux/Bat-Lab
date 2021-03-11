@@ -337,6 +337,14 @@ def cell_analysis(df, neuron, neuron_description=""):
         print(f'Too few spikes (< conf:{config.Config.get("MIN_SPIKES")})')
         return True
 
+    if config.Config.get("NOISE_CANCELLATION"):
+        print("CLEANING NOISE")
+        neuron = SVM_utils.noise_cancellation(neuron)
+
+    if neuron.sum() < config.Config.get("MIN_SPIKES"):
+        print(f'Too few spikes (< conf:{config.Config.get("MIN_SPIKES")})')
+        return True
+
     if config.Config.get("BINNING"):
         df, neuron = SVM_utils.bin_df_and_neuron(df, neuron, bin_size=5)
 
@@ -454,6 +462,7 @@ def run_experiment():
             continue
 
         if config.Config.get.get("NOISE_CANCELLATION"):
+            print("CLEANING NOISE")
             spikes = list(map(SVM_utils.noise_cancellation, spikes))
         [print(s.mean()) for s in spikes]
         for nid, n in enumerate(spikes):

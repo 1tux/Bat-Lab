@@ -1,4 +1,4 @@
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.model_selection import train_test_split, ShuffleSplit, KFold, StratifiedKFold
 import importance
 from sklearn.metrics import confusion_matrix
@@ -8,7 +8,7 @@ from constants import *
 import SVM_utils
 # from xgboost import XGBClassifier
 import copy
-
+from math import sqrt
 
 def per_cross_validation(model, X_train, X_test, y_train, y_test):
     if model.upsample:
@@ -16,6 +16,7 @@ def per_cross_validation(model, X_train, X_test, y_train, y_test):
     model.train(X_train, y_train)
 
     model.train_cm = confusion_matrix(y_train, model.predict(X_train))
+    print("predicting:", model.predict(X_test).sum(), "out of", y_test.sum(), "spikes")
     model.test_cm = confusion_matrix(y_test, model.predict(X_test))
 
     return model, model.train_cm, model.test_cm
@@ -124,6 +125,34 @@ class Model:
         # TODO: return self instead, or actually not return anything at all!
         return svm_models[0], train_cms, test_cms, imp_table, agg_imp_table, std_train_cm, std_test_cm
 
+    def evaluate(confusion_matrix):
+        # calculating MCC score: https://en.wikipedia.org/wiki/Matthews_correlation_coefficient
+
+        tp = confusion_matrix[1][1]
+        tn = confusion_matrix[1][0]
+        fp = confusion_matrix[0][1]
+        fn = confusion_matrix[0][0]
+
+        mcc = tp * tn - fp*fn / sqrt((tp + fp)*(tp+fn)*(tn+fp)*(tn+fn))
+        return mcc
+
+    def evaluate_against_shuffles(model_cms, shuffles_cms):
+        # assuming we got several confusion_matrices from running the model with CV.
+        # assuming we got several confusion_matrices from shuffles.
+        # we return the difference between the medians of the MCCs of the confusion_matrices.
+
+        models_mcc = []
+        for cm in models_cms:
+            models_mcc.append(evaluate(cm))
+
+        shuffles_mcc = []
+        for cm in shuffles_cms:
+            shuffles_mcc.append(evaluate(cm))
+
+        mcc1 = np.median(models_mcc)
+        mcc2 = np.median(shuffles_mcc)
+
+        return mcc1 - mcc2
 
 class SVMModel(Model):
 
@@ -141,6 +170,53 @@ class SVMModel(Model):
             self.model = SGDClassifier(power_t=0.4, n_jobs=1, max_iter=10 ** 5, learning_rate="invscaling", eta0=1,
                                        penalty='L1', n_iter_no_change=10, random_state=1337)
 
+    def train(self, X, y):
+        self.X_train = X
+        self.y_train = y
+        self.model.fit(X, y)
+
+    def predict(self, X_test):
+        self.X_test = X_test
+        self.X_preds = self.model.predict(X_test)
+        return self.X_preds
+
+    def get_importances(self):
+        return np.abs(self.model.coef_[0])
+
+    def __call__(self, X, y):
+        if self.cv:
+            return self.cross_validate(X, y)
+        else:
+            return self.single_run(X, y)
+
+    def set_weight(self, weight):
+        self.model.class_weight = weight
+
+    def get_all_importances(self):
+        assert self.svm_models is not None, "you can't store all CV without running CV"
+        coeffs = []
+        for m in self.svm_models:
+            coeffs.append(m.model.coef_[0])
+        return coeffs
+
+class SoftMAXModel(Model):
+
+    def __init__(self, model=None, cv=False, multi_threaded=True, upsample=True):
+        self.X_train = None
+        self.y_train = None
+        self.X_test = None
+        self.X_preds = None
+
+        self.upsample = upsample
+        self.model = model
+        self.cv = (cv > 1) * cv
+        self.multi_threaded = multi_threaded
+        if model is None:
+            #self.model = LogisticRegression(n_jobs=1, penalty='l1', random_state=1337, max_iter=10 ** 3, solver='saga')
+            self.model = SGDClassifier(loss='log', power_t=0.4, n_jobs=1, max_iter=10 ** 5, learning_rate="invscaling", eta0=1,
+                                       penalty='L1', n_iter_no_change=10, random_state=1337)
+            print("Softmax!")
+            
     def train(self, X, y):
         self.X_train = X
         self.y_train = y

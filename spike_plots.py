@@ -266,6 +266,18 @@ def hd_plot_1d(df, neuron, model_spikes, ax=None):
 
     hd_spikes_radians = df_neuron[dataset.get_col_name(0, "HD")] / 180 * np.pi
     ax.set_yticks([])
-    ax.hist(df[dataset.get_col_name(0, "HD")] / 180 * np.pi, bins=36, color="#cccccc", density=True)
-    ax.hist(hd_spikes_radians, bins=36, color="red", density=True)
-    ax.hist(df_model_spikes[dataset.get_col_name(0, "HD")] / 180 * np.pi, bins=36, color="blue", density=True)
+    behavior = df[dataset.get_col_name(0, "HD")] / 180 * np.pi
+    behavior_map = np.histogram(behavior, bins=np.linspace(0, 1, 36) * 2*np.pi)[0]
+    hd_spikes_radians_map = np.histogram(hd_spikes_radians, bins=np.linspace(0, 1, 36) * 2*np.pi)[0]
+    model_spikes = df_model_spikes[dataset.get_col_name(0, "HD")] / 180 * np.pi
+    model_spikes_map = np.histogram(model_spikes, bins=np.linspace(0, 1, 36) * 2*np.pi)[0]
+
+    print(hd_spikes_radians_map)
+    print(behavior_map)
+    print(hd_spikes_radians_map / behavior_map)
+    print(model_spikes_map / behavior_map)
+    #ax.hist(behavior_map, bins=36, color="#cccccc", density=True)
+    #ax.hist(hd_spikes_radians, bins=36, color="red", density=True)
+    ax.plot(hd_spikes_radians_map / behavior_map)
+    ax.plot(model_spikes_map / behavior_map)
+    #ax.hist(df_model_spikes[dataset.get_col_name(0, "HD")] / 180 * np.pi, bins=36, color="blue", density=True, alpha=0.2)

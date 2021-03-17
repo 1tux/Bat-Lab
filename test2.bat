@@ -1,0 +1,8 @@
+REM python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv C:\Users\itayy\Documents\Bat-Lab\data\neural_data\simulated\1337_b2305_d191220.csv 
+REM python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv C:\Users\itayy\Documents\Bat-Lab\data\neural_data\simulated\1338_b2305_d191220.csv 
+REM python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv C:\Users\itayy\Documents\Bat-Lab\data\neural_data\simulated\1339_b2305_d191220.csv 
+python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv "C:\Users\itayy\Documents\Bat-Lab\data\neural_data\parsed\timebin1 - 120ms\72_b2305_d191220.csv" 
+python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv "C:\Users\itayy\Documents\Bat-Lab\data\neural_data\parsed\timebin2 - 1s\72_b2305_d191220.csv"
+python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv "C:\Users\itayy\Documents\Bat-Lab\data\neural_data\parsed\timebin3 - 10s\72_b2305_d191220.csv"
+python main.py C:\Users\itayy\Documents\Bat-Lab\data\behavioral_data\parsed\b2305_d191220_simplified_behaviour.csv "C:\Users\itayy\Documents\Bat-Lab\data\neural_data\parsed\timebin4 - 30s\72_b2305_d191220.csv"
+REM python main.py "C:\Users\itayy\Documents\saikat - Bat Lab\data\behavioural_data\parsed\b2305_d191223_simplified_behaviour.csv" "C:\Users\itayy\Documents\saikat - Bat Lab\data\neural_data\parsed\85_b2305_d191223.csv"

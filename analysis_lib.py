@@ -21,7 +21,7 @@ import feature_engineering
 import parse_real_neural_data
 import uuid
 
-from models import SVMModel
+from models import SVMModel, SoftMAXModel
 from constants import *
 import config
 
@@ -341,6 +341,7 @@ def cell_analysis(df, neuron, neuron_description=""):
         print("CLEANING NOISE")
         neuron = SVM_utils.noise_cancellation(neuron)
 
+    print("After cleaning there are:", neuron.sum(), "spikes")
     if neuron.sum() < config.Config.get("MIN_SPIKES"):
         print(f'Too few spikes (< conf:{config.Config.get("MIN_SPIKES")})')
         return True
@@ -359,11 +360,12 @@ def cell_analysis(df, neuron, neuron_description=""):
     df_ = df.reset_index(drop=True)
 
     # print(df_.head())
-
+    
     shuffled_vals = []
     threads = []
 
     neuron_dropped = neuron[df.index].reset_index(drop=True)
+    print("After removing NaNs from dataframe:", neuron_dropped.sum(), "spikes")
 
     if neuron_dropped.sum() < config.Config.get("MIN_SPIKES"):
         print(f'Too few spikes (< conf:{config.Config.get("MIN_SPIKES")})')
@@ -380,7 +382,15 @@ def cell_analysis(df, neuron, neuron_description=""):
 
     for xid, shuffled_neuron in enumerate(shuffling.shuffling(neuron_dropped, config.Config.get("N_SHUFFLES"))):
         shuffled_neuron = shuffled_neuron.astype('int')
-        model = SVMModel(multi_threaded=True, upsample=config.Config.get('UPSAMPLING'))
+        model_class_str = config.Config.get("MODEL")
+        if model_class_str == "SVM":
+            model_class = SVMModel
+        elif model_class_str == "SoftMAX":
+            model_class = SoftMAXModel
+        else:
+            raise Exception("UNKNOWN MODEL in CONFIGURATION FILE")
+
+        model = model_class(multi_threaded=True, upsample=config.Config.get('UPSAMPLING'))
 
         if not config.Config.get('UPSAMPLING'):
             WEIGHT = dict(zip([0,1], len(shuffled_neuron) / (2*np.bincount(shuffled_neuron))))
@@ -407,7 +417,7 @@ def cell_analysis(df, neuron, neuron_description=""):
         return True
 
     # model = SVM_model(cv=CV)
-    model = SVMModel(cv=config.Config.get("CV"), multi_threaded=True, upsample=config.Config.get('UPSAMPLING'))
+    model = model_class(cv=config.Config.get("CV"), multi_threaded=True, upsample=config.Config.get('UPSAMPLING'))
     if not config.Config.get('UPSAMPLING'):
         WEIGHT = dict(zip([0,1], len(neuron) / ( 2 * np.bincount(neuron) )))
         if config.Config.get("SQRT_WEIGHT"):

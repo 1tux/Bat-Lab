@@ -247,7 +247,7 @@ def design_axes(description):
 
 def get_best_bats_it(sorted_col_names, amount=3):
     best_bats_ordered_with_rep = list(map(dataset.extract_bat_name, sorted_col_names))[::-1]
-    seen = set()
+    seen = set(['0'])
     best_bats_orderded_no_rep = []
     for b in best_bats_ordered_with_rep:
         if b not in seen:

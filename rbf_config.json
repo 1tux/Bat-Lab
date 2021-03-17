@@ -4,7 +4,6 @@
     "CACHED_BEHAVIORAL_DATA" : 1,
     "SHOW_PLOTS" : 0,
     "PER_BAT_ANALYSIS" : 0,
-    "FE" : 1,
     "WITH_PAIRS" : 1, 
     "BINNING" : 0,
     "NOISE_CANCELLATION" : 0,
@@ -20,5 +19,6 @@
     "MIN_DATAPOINTS" : 15000,
     "STORE_DATAFRAME": 0,
     "STORE_NORMALIZED_DATAFRAME": 0,
-    "MODEL" : "SVM"
+    "MODEL" : "RBFkernel",
+    "FE" : 0
 }

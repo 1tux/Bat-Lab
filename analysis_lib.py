@@ -20,8 +20,9 @@ import importance
 import feature_engineering
 import parse_real_neural_data
 import uuid
+import models
 
-from models import SVMModel, SoftMAXModel
+from models import SVMModel, SoftMAXModel, RBFkernel
 from constants import *
 import config
 
@@ -237,6 +238,8 @@ def plot_feature_importance_shuffles(imp_table, agg_imp_table, axes, total_featu
                                             pd.concat(t_shuffled_vals[3]))
     axes[0].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
 
+    # agg_feature_importance
+    """
     importance.plot_f_importance_from_table(agg_imp_table[agg_imp_names], axes[1], config.Config.get("FI_NUM"), total_features,
                                             pd.concat(t_shuffled_vals[4]))
     sns.swarmplot(s=3, x="importance", y="name", hue="type", data=sh_df2, ax=axes[1], order=agg_imp_names[:config.Config.get("FI_NUM")])
@@ -244,6 +247,7 @@ def plot_feature_importance_shuffles(imp_table, agg_imp_table, axes, total_featu
                                             pd.concat(t_shuffled_vals[4]))
     axes[1].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
     warnings.simplefilter("default", UserWarning)
+    """
     return t_shuffled_vals, shuffles_df, shuffled_b_accuracy
 
 
@@ -256,11 +260,31 @@ def confusion_matrix_to_false_positive(cm):
 
 
 def plot_other_plots(shuffles_df, t_shuffled_vals, train_cm, test_cm, shuffled_b_accuracy, axes):
-    warnings.simplefilter("ignore", UserWarning)
-    sns.swarmplot(x="value", y="name", hue="type", data=shuffles_df, ax=axes[0])
-    axes[0].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
+    #warnings.simplefilter("ignore", UserWarning)
+    #sns.swarmplot(x="value", y="name", hue="type", data=shuffles_df, ax=axes[0])
+    #axes[0].get_legend().remove()  # shitty sns lib, doesn't let you remove the legend itself.
 
     # cm_to_fp = 
+
+    train_mcc = []
+    for cm in train_cm:
+        train_mcc.append(models.evaluate(cm))
+
+    test_mcc = []
+    for cm in test_cm:
+        test_mcc.append(models.evaluate(cm))
+
+    shuffles_mcc = []
+    for cm in t_shuffled_vals[1]:
+        shuffles_mcc.append(models.evaluate(cm))
+
+    axes[0].scatter([20] * len(shuffles_mcc), shuffles_mcc, label="SHUFFLES")
+    axes[0].scatter([0] * len(train_mcc), train_mcc, label="TRAIN")
+    axes[0].scatter([10] * len(test_mcc), test_mcc, label="TEST")
+    
+    axes[0].legend()
+    axes[0].set_title("MCC")
+
     shuffled_tp = list(map(confusion_matrix_to_true_positive, t_shuffled_vals[1]))
     shuffled_fp = list(map(confusion_matrix_to_false_positive, t_shuffled_vals[1]))
 
@@ -270,15 +294,17 @@ def plot_other_plots(shuffles_df, t_shuffled_vals, train_cm, test_cm, shuffled_b
     cv_train_fp = list(map(confusion_matrix_to_false_positive, train_cm))
     cv_test_fp = list(map(confusion_matrix_to_false_positive, test_cm))
 
-    axes[1].scatter(shuffled_fp, shuffled_tp, 5)
-    axes[1].scatter(cv_train_fp, cv_train_tp)
-    axes[1].scatter(cv_test_fp, cv_test_tp)
+    axes[1].scatter(shuffled_fp, shuffled_tp, 5, label="SHUFFLES")
+    axes[1].scatter(cv_train_fp, cv_train_tp, label="TRAIN")
+    axes[1].scatter(cv_test_fp, cv_test_tp, label="TEST")
 
     axes[1].set_xlim(0, 1)
     axes[1].set_ylim(0, 1)
+    axes[1].legend()
+    axes[1].set_title("RoC Curve")
 
-    sns.distplot(shuffled_b_accuracy, bins=10, kde=True, ax=axes[2])
-    warnings.simplefilter("default", UserWarning)
+    #sns.distplot(shuffled_b_accuracy, bins=10, kde=True, ax=axes[2])
+    #warnings.simplefilter("default", UserWarning)
 
 # TODO: this needs to be split into different functions, each plotting different things.
 def plot_result_per_model(axes, fig, design_shape,
@@ -296,7 +322,7 @@ def plot_result_per_model(axes, fig, design_shape,
     axes_for_fi = axes[N_BATS_TO_PLOT * 4 + 2:N_BATS_TO_PLOT * 4 + 4]
     total_features = len(imp_table.columns)
 
-    best_bats_id = SVM_utils.get_best_bats_it(agg_imp_table.mean(0).sort_values().index, N_BATS_TO_PLOT)
+    best_bats_id = [0] + SVM_utils.get_best_bats_it(agg_imp_table.mean(0).sort_values().index, N_BATS_TO_PLOT)
     model_spikes = model.predict(normalized_df)
 
     plot_basic_plots(df, neuron, model_spikes, axes, best_bats_id, design_shape)
@@ -387,6 +413,8 @@ def cell_analysis(df, neuron, neuron_description=""):
             model_class = SVMModel
         elif model_class_str == "SoftMAX":
             model_class = SoftMAXModel
+        elif model_class_str == "RBFkernel":
+            model_class = RBFkernel
         else:
             raise Exception("UNKNOWN MODEL in CONFIGURATION FILE")
 
